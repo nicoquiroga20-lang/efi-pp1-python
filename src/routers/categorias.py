@@ -4,7 +4,6 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.deps import require_roles
 from src.db.session import get_session
 from src.models.categoria import Categoria
 from src.schemas.categoria import (
@@ -23,12 +22,11 @@ router = APIRouter(
     "/",
     response_model=CategoriaRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Crear una nueva categoría (Solo Administrador)",
+    summary="Crear una nueva categoría",
 )
 def create_categoria(
     categoria_in: CategoriaCreate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Categoria:
     """
     Crea una nueva categoría en la base de datos.
@@ -95,7 +93,7 @@ def read_categoria(
 @router.put(
     "/{categoria_id}",
     response_model=CategoriaRead,
-    summary="Actualizar una categoría (Solo Administrador)",
+    summary="Actualizar una categoría",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Categoría no encontrada",
@@ -107,7 +105,6 @@ def update_categoria(
     categoria_id: int,
     categoria_in: CategoriaUpdate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Categoria:
     """
     Actualiza los campos enviados de una categoría existente.
@@ -132,7 +129,7 @@ def update_categoria(
 @router.delete(
     "/{categoria_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Eliminar una categoría (Solo Administrador)",
+    summary="Eliminar una categoría",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Categoría no encontrada",
@@ -143,7 +140,6 @@ def update_categoria(
 def delete_categoria(
     categoria_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> None:
     """
     Elimina físicamente una categoría de la base de datos por su ID.
@@ -157,3 +153,4 @@ def delete_categoria(
 
     session.delete(categoria_db)
     session.commit()
+

@@ -50,11 +50,12 @@ class ProductoPublicNested(ProductoPublic):
 
 class ProductoCreate(ProductoBase):
     """Esquema para crear Producto."""
-    pass
+    emprendedor_id: int
 
 
 class ProductoUpdate(SQLModel):
     """Esquema para actualizar Producto."""
+    emprendedor_id: Optional[int] = None
     categoria_id: Optional[int] = None
     nombre: Optional[str] = None
     descripcion: Optional[str] = None

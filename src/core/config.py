@@ -13,9 +13,6 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     DATABASE_URL: str = "sqlite:///./database.db"
     BACKEND_CORS_ORIGINS: Union[str, List[str]] = ["*"]
-    SECRET_KEY: str = "feria-imperio-super-secret-jwt-key-2026-vertex-solutions"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 horas
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

@@ -4,7 +4,6 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.deps import require_roles
 from src.db.session import get_session
 from src.models.plan import Plan
 from src.schemas.plan import PlanCreate, PlanRead, PlanUpdate
@@ -19,12 +18,11 @@ router = APIRouter(
     "/",
     response_model=PlanRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Crear un nuevo plan (Solo Administrador)",
+    summary="Crear un nuevo plan",
 )
 def create_plan(
     plan_in: PlanCreate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Plan:
     """
     Crea un nuevo plan de suscripción en el sistema.
@@ -91,7 +89,7 @@ def read_plan(
 @router.put(
     "/{plan_id}",
     response_model=PlanRead,
-    summary="Actualizar un plan (Solo Administrador)",
+    summary="Actualizar un plan",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Plan no encontrado",
@@ -103,7 +101,6 @@ def update_plan(
     plan_id: int,
     plan_in: PlanUpdate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Plan:
     """
     Actualiza la información, precio o límites de un plan existente.
@@ -128,7 +125,7 @@ def update_plan(
 @router.delete(
     "/{plan_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Desactivar o eliminar un plan (Solo Administrador)",
+    summary="Desactivar o eliminar un plan",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Plan no encontrado",
@@ -139,7 +136,6 @@ def update_plan(
 def delete_plan(
     plan_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> None:
     """
     Elimina físicamente un plan del sistema.
@@ -153,3 +149,4 @@ def delete_plan(
 
     session.delete(plan_db)
     session.commit()
+

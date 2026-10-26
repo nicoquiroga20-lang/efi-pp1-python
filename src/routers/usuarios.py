@@ -4,11 +4,9 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.deps import get_current_active_user, require_roles
 from src.core.security import get_password_hash
 from src.db.session import get_session
-from src.models.usuario import Usuario
-from src.schemas.usuario import UsuarioRead, UsuarioUpdate
+from src.models.usuario import Usuario, UsuarioCreate, UsuarioPublic, UsuarioUpdate
 
 router = APIRouter(
     prefix="/usuarios",
@@ -16,16 +14,48 @@ router = APIRouter(
 )
 
 
+@router.post(
+    "/",
+    response_model=UsuarioPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear un nuevo usuario",
+)
+def create_usuario(
+    usuario_in: UsuarioCreate,
+    session: Session = Depends(get_session),
+) -> Usuario:
+    """
+    Crea un nuevo usuario en el sistema.
+    """
+    existing_user = session.exec(select(Usuario).where(Usuario.email == usuario_in.email)).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ya existe un usuario registrado con este correo electrónico",
+        )
+
+    usuario_db = Usuario(
+        email=usuario_in.email,
+        password_hash=get_password_hash(usuario_in.password),
+        nombre_completo=usuario_in.nombre_completo,
+        rol=usuario_in.rol,
+        activo=usuario_in.activo,
+    )
+    session.add(usuario_db)
+    session.commit()
+    session.refresh(usuario_db)
+    return usuario_db
+
+
 @router.get(
     "/",
-    response_model=Page[UsuarioRead],
-    summary="Listar usuarios (Solo Administrador)",
+    response_model=Page[UsuarioPublic],
+    summary="Listar usuarios",
 )
 def read_usuarios(
     rol: Optional[str] = Query(default=None, description="Filtrar por rol ('cliente', 'emprendedor', 'admin')"),
     activo: Optional[bool] = Query(default=None, description="Filtrar por estado activo"),
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ):
     """
     Retorna la lista de usuarios registrados con soporte de paginación.
@@ -40,7 +70,7 @@ def read_usuarios(
 
 @router.get(
     "/{usuario_id}",
-    response_model=UsuarioRead,
+    response_model=UsuarioPublic,
     summary="Obtener usuario por ID",
     responses={
         status.HTTP_404_NOT_FOUND: {
@@ -51,19 +81,11 @@ def read_usuarios(
 )
 def read_usuario(
     usuario_id: int,
-    current_user: Usuario = Depends(get_current_active_user),
     session: Session = Depends(get_session),
 ) -> Usuario:
     """
     Consulta los datos de un usuario por su ID.
-    Solo el Administrador o el propio usuario pueden consultar su información.
     """
-    if current_user.rol != "admin" and current_user.id != usuario_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tiene permiso para ver la información de este usuario",
-        )
-
     usuario = session.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(
@@ -75,7 +97,7 @@ def read_usuario(
 
 @router.put(
     "/{usuario_id}",
-    response_model=UsuarioRead,
+    response_model=UsuarioPublic,
     summary="Actualizar datos de un usuario",
     responses={
         status.HTTP_404_NOT_FOUND: {
@@ -87,19 +109,11 @@ def read_usuario(
 def update_usuario(
     usuario_id: int,
     usuario_in: UsuarioUpdate,
-    current_user: Usuario = Depends(get_current_active_user),
     session: Session = Depends(get_session),
 ) -> Usuario:
     """
-    Actualiza el perfil de un usuario.
-    Los usuarios comunes pueden editar su nombre o password; solo Admin puede cambiar rol o estado activo.
+    Actualiza el perfil de un usuario existente.
     """
-    if current_user.rol != "admin" and current_user.id != usuario_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tiene permiso para modificar este usuario",
-        )
-
     usuario_db = session.get(Usuario, usuario_id)
     if not usuario_db:
         raise HTTPException(
@@ -108,11 +122,6 @@ def update_usuario(
         )
 
     data = usuario_in.model_dump(exclude_unset=True)
-
-    # Si no es admin, no puede cambiar rol ni estado activo
-    if current_user.rol != "admin":
-        data.pop("rol", None)
-        data.pop("activo", None)
 
     # Si se actualiza la contraseña, aplicar hash
     if "password" in data and data["password"]:
@@ -130,7 +139,7 @@ def update_usuario(
 @router.delete(
     "/{usuario_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Desactivar o eliminar un usuario (Solo Administrador)",
+    summary="Eliminar un usuario",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Usuario no encontrado",
@@ -141,10 +150,9 @@ def update_usuario(
 def delete_usuario(
     usuario_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> None:
     """
-    Desactiva o elimina un usuario del sistema.
+    Elimina un usuario del sistema por su ID.
     """
     usuario_db = session.get(Usuario, usuario_id)
     if not usuario_db:
