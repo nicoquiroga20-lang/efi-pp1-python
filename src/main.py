@@ -7,7 +7,6 @@ from fastapi_pagination import add_pagination
 from src.core.config import settings
 from src.db.init_db import init_db
 from src.routers import (
-    auth_router,
     usuarios_router,
     emprendedores_router,
     productos_router,
@@ -50,7 +49,6 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 # Registro de routers
-app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(usuarios_router, prefix=settings.API_V1_STR)
 app.include_router(emprendedores_router, prefix=settings.API_V1_STR)
 app.include_router(productos_router, prefix=settings.API_V1_STR)

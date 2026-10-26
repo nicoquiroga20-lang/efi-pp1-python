@@ -4,11 +4,6 @@ from src.schemas.categoria import (
     CategoriaUpdate,
     CategoriaRead,
 )
-from src.schemas.auth import (
-    LoginRequest,
-    TokenResponse,
-    RegisterRequest,
-)
 from src.schemas.usuario import (
     UsuarioBase,
     UsuarioCreate,
@@ -57,9 +52,6 @@ __all__ = [
     "CategoriaCreate",
     "CategoriaUpdate",
     "CategoriaRead",
-    "LoginRequest",
-    "TokenResponse",
-    "RegisterRequest",
     "UsuarioBase",
     "UsuarioCreate",
     "UsuarioUpdate",

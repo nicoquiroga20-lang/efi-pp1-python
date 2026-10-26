@@ -4,7 +4,6 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.deps import require_roles
 from src.db.session import get_session
 from src.models.contacto import Contacto
 from src.schemas.contacto import ContactoCreate, ContactoRead, ContactoUpdate
@@ -19,7 +18,7 @@ router = APIRouter(
     "/",
     response_model=ContactoRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Enviar mensaje de contacto o postulación (Público)",
+    summary="Enviar mensaje de contacto o postulación",
 )
 def create_contacto(
     contacto_in: ContactoCreate,
@@ -27,7 +26,6 @@ def create_contacto(
 ) -> Contacto:
     """
     Envía una consulta o postulación desde el formulario de contacto web.
-    Cualquier visitante puede enviar un mensaje sin registrarse.
     """
     contacto_db = Contacto.model_validate(contacto_in)
     session.add(contacto_db)
@@ -39,16 +37,15 @@ def create_contacto(
 @router.get(
     "/",
     response_model=Page[ContactoRead],
-    summary="Listar mensajes de contacto (Solo Administrador)",
+    summary="Listar mensajes de contacto",
 )
 def read_contactos(
     leido: Optional[bool] = Query(default=None, description="Filtrar por estado leído/no leído"),
     tipo_mensaje: Optional[str] = Query(default=None, description="Filtrar por tipo de mensaje"),
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ):
     """
-    Permite al Administrador revisar la bandeja de entrada de mensajes de contacto y postulaciones.
+    Retorna la bandeja de entrada de mensajes de contacto y postulaciones de manera paginada.
     """
     statement = select(Contacto)
     if leido is not None:
@@ -62,7 +59,7 @@ def read_contactos(
 @router.get(
     "/{contacto_id}",
     response_model=ContactoRead,
-    summary="Ver detalle de un mensaje de contacto (Solo Administrador)",
+    summary="Ver detalle de un mensaje de contacto",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Mensaje de contacto no encontrado",
@@ -73,10 +70,9 @@ def read_contactos(
 def read_contacto(
     contacto_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Contacto:
     """
-    Lee un mensaje de contacto específico y puede marcarlo automáticamente como leído.
+    Lee un mensaje de contacto específico.
     """
     contacto = session.get(Contacto, contacto_id)
     if not contacto:
@@ -90,7 +86,7 @@ def read_contacto(
 @router.put(
     "/{contacto_id}",
     response_model=ContactoRead,
-    summary="Actualizar estado de un mensaje (Solo Administrador)",
+    summary="Actualizar estado de un mensaje",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Mensaje de contacto no encontrado",
@@ -102,7 +98,6 @@ def update_contacto(
     contacto_id: int,
     contacto_in: ContactoUpdate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Contacto:
     """
     Permite marcar un mensaje como leído o pendiente.
@@ -127,7 +122,7 @@ def update_contacto(
 @router.delete(
     "/{contacto_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Eliminar un mensaje de contacto (Solo Administrador)",
+    summary="Eliminar un mensaje de contacto",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Mensaje de contacto no encontrado",
@@ -138,7 +133,6 @@ def update_contacto(
 def delete_contacto(
     contacto_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> None:
     """
     Elimina un mensaje de contacto de la bandeja de entrada.
@@ -152,3 +146,4 @@ def delete_contacto(
 
     session.delete(contacto_db)
     session.commit()
+

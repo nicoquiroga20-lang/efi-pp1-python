@@ -4,7 +4,6 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.deps import require_roles
 from src.db.session import get_session
 from src.models.feria import Feria
 from src.schemas.feria import FeriaCreate, FeriaRead, FeriaUpdate
@@ -19,12 +18,11 @@ router = APIRouter(
     "/",
     response_model=FeriaRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Crear una nueva feria o evento (Solo Administrador)",
+    summary="Crear una nueva feria o evento",
 )
 def create_feria(
     feria_in: FeriaCreate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Feria:
     """
     Registra una nueva feria o punto de encuentro en Río Cuarto.
@@ -84,7 +82,7 @@ def read_feria(
 @router.put(
     "/{feria_id}",
     response_model=FeriaRead,
-    summary="Actualizar una feria (Solo Administrador)",
+    summary="Actualizar una feria",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Feria no encontrada",
@@ -96,7 +94,6 @@ def update_feria(
     feria_id: int,
     feria_in: FeriaUpdate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Feria:
     """
     Actualiza la fecha, horario, ubicación o datos de una feria existente.
@@ -121,7 +118,7 @@ def update_feria(
 @router.delete(
     "/{feria_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Eliminar una feria (Solo Administrador)",
+    summary="Eliminar una feria",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Feria no encontrada",
@@ -132,7 +129,6 @@ def update_feria(
 def delete_feria(
     feria_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> None:
     """
     Elimina físicamente una feria de la base de datos.
@@ -146,3 +142,4 @@ def delete_feria(
 
     session.delete(feria_db)
     session.commit()
+

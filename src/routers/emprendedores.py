@@ -4,11 +4,15 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.deps import get_current_active_user, get_current_emprendedor, require_roles
 from src.db.session import get_session
-from src.models.emprendedor import Emprendedor, EmprendedorPublicNested
+from src.models.emprendedor import (
+    Emprendedor,
+    EmprendedorCreate,
+    EmprendedorPublic,
+    EmprendedorPublicNested,
+    EmprendedorUpdate,
+)
 from src.models.usuario import Usuario
-from src.schemas.emprendedor import EmprendedorRead, EmprendedorUpdate
 
 router = APIRouter(
     prefix="/emprendedores",
@@ -16,9 +20,45 @@ router = APIRouter(
 )
 
 
+@router.post(
+    "/",
+    response_model=EmprendedorPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Registrar un nuevo emprendedor / puesto",
+)
+def create_emprendedor(
+    emprendedor_in: EmprendedorCreate,
+    session: Session = Depends(get_session),
+) -> Emprendedor:
+    """
+    Crea un nuevo perfil de emprendedor asociado a un usuario existente.
+    """
+    usuario = session.get(Usuario, emprendedor_in.usuario_id)
+    if not usuario:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Usuario con ID {emprendedor_in.usuario_id} no encontrado",
+        )
+
+    existente = session.exec(
+        select(Emprendedor).where(Emprendedor.usuario_id == emprendedor_in.usuario_id)
+    ).first()
+    if existente:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El usuario con ID {emprendedor_in.usuario_id} ya posee un perfil de emprendedor",
+        )
+
+    emprendedor = Emprendedor.model_validate(emprendedor_in)
+    session.add(emprendedor)
+    session.commit()
+    session.refresh(emprendedor)
+    return emprendedor
+
+
 @router.get(
     "/",
-    response_model=Page[EmprendedorRead],
+    response_model=Page[EmprendedorPublic],
     summary="Listar emprendedores / puestos con paginación y filtros",
 )
 def read_emprendedores(
@@ -72,39 +112,9 @@ def read_emprendedor(
 
 
 @router.put(
-    "/me",
-    response_model=EmprendedorRead,
-    summary="Actualizar mi propio perfil de emprendedor",
-)
-def update_my_emprendedor_profile(
-    emprendedor_in: EmprendedorUpdate,
-    current_emprendedor: Emprendedor = Depends(get_current_emprendedor),
-    session: Session = Depends(get_session),
-) -> Emprendedor:
-    """
-    Permite al emprendedor autenticado actualizar la información de su puesto
-    (teléfono de WhatsApp, bio, redes sociales, imágenes de banner/logo).
-    """
-    data = emprendedor_in.model_dump(exclude_unset=True)
-
-    # El emprendedor no puede cambiarse su propio plan ni marcarse como destacado
-    data.pop("plan_id", None)
-    data.pop("destacado", None)
-    data.pop("usuario_id", None)
-
-    for key, value in data.items():
-        setattr(current_emprendedor, key, value)
-
-    session.add(current_emprendedor)
-    session.commit()
-    session.refresh(current_emprendedor)
-    return current_emprendedor
-
-
-@router.put(
     "/{emprendedor_id}",
-    response_model=EmprendedorRead,
-    summary="Actualizar cualquier emprendedor (Solo Administrador)",
+    response_model=EmprendedorPublic,
+    summary="Actualizar información de un emprendedor",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Emprendedor no encontrado",
@@ -112,14 +122,13 @@ def update_my_emprendedor_profile(
         }
     },
 )
-def update_emprendedor_as_admin(
+def update_emprendedor(
     emprendedor_id: int,
     emprendedor_in: EmprendedorUpdate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Emprendedor:
     """
-    Permite al Administrador gestionar cualquier emprendedor (incluyendo cambiar plan y destacar en Home).
+    Permite actualizar cualquier dato del emprendedor por su ID.
     """
     emprendedor_db = session.get(Emprendedor, emprendedor_id)
     if not emprendedor_db:
@@ -141,7 +150,7 @@ def update_emprendedor_as_admin(
 @router.delete(
     "/{emprendedor_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Eliminar o dar de baja a un emprendedor (Solo Administrador)",
+    summary="Eliminar o dar de baja a un emprendedor",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Emprendedor no encontrado",
@@ -152,10 +161,9 @@ def update_emprendedor_as_admin(
 def delete_emprendedor(
     emprendedor_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> None:
     """
-    Elimina un emprendedor de la base de datos.
+    Elimina un emprendedor de la base de datos por su ID.
     """
     emprendedor_db = session.get(Emprendedor, emprendedor_id)
     if not emprendedor_db:
@@ -166,3 +174,4 @@ def delete_emprendedor(
 
     session.delete(emprendedor_db)
     session.commit()
+
