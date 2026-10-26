@@ -4,7 +4,6 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.deps import require_roles
 from src.db.session import get_session
 from src.models.rubro import Rubro
 from src.schemas.rubro import RubroCreate, RubroRead, RubroUpdate
@@ -19,12 +18,11 @@ router = APIRouter(
     "/",
     response_model=RubroRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Crear un nuevo rubro (Solo Administrador)",
+    summary="Crear un nuevo rubro",
 )
 def create_rubro(
     rubro_in: RubroCreate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Rubro:
     """
     Crea un nuevo rubro para clasificar emprendimientos.
@@ -91,7 +89,7 @@ def read_rubro(
 @router.put(
     "/{rubro_id}",
     response_model=RubroRead,
-    summary="Actualizar un rubro (Solo Administrador)",
+    summary="Actualizar un rubro",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Rubro no encontrado",
@@ -103,7 +101,6 @@ def update_rubro(
     rubro_id: int,
     rubro_in: RubroUpdate,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> Rubro:
     """
     Actualiza el nombre o descripción de un rubro existente.
@@ -128,7 +125,7 @@ def update_rubro(
 @router.delete(
     "/{rubro_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Eliminar un rubro (Solo Administrador)",
+    summary="Eliminar un rubro",
     responses={
         status.HTTP_404_NOT_FOUND: {
             "description": "Rubro no encontrado",
@@ -139,7 +136,6 @@ def update_rubro(
 def delete_rubro(
     rubro_id: int,
     session: Session = Depends(get_session),
-    _admin=Depends(require_roles(["admin"])),
 ) -> None:
     """
     Elimina físicamente un rubro de la base de datos.
@@ -153,3 +149,4 @@ def delete_rubro(
 
     session.delete(rubro_db)
     session.commit()
+
