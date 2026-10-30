@@ -10,12 +10,6 @@ from src.schemas.usuario import (
     UsuarioUpdate,
     UsuarioRead,
 )
-from src.schemas.plan import (
-    PlanBase,
-    PlanCreate,
-    PlanUpdate,
-    PlanRead,
-)
 from src.schemas.rubro import (
     RubroBase,
     RubroCreate,
@@ -56,10 +50,6 @@ __all__ = [
     "UsuarioCreate",
     "UsuarioUpdate",
     "UsuarioRead",
-    "PlanBase",
-    "PlanCreate",
-    "PlanUpdate",
-    "PlanRead",
     "RubroBase",
     "RubroCreate",
     "RubroUpdate",

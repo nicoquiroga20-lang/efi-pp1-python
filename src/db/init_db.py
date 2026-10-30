@@ -6,6 +6,6 @@ import src.models  # noqa: F401
 
 def init_db() -> None:
     """
-    Inicializa la base de datos creando las tablas que aún no existan.
+    Inicializa la base de datos creando las tablas que aún no existan
     """
     SQLModel.metadata.create_all(engine)

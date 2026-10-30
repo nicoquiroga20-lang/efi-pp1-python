@@ -1,23 +1,22 @@
 # Esquema de Base de Datos - Feria Imperio (FastAPI + SQLModel + SQLite)
 
 > **Contexto del Proyecto:**  
-> Este documento define la estructura oficial de las 8 tablas de la base de datos relacional (SQLite) para la API de **Feria Imperio**, desarrollada por Vertex Solutions S.A.S. para la Tecnicatura Superior en Desarrollo de Software (ITEC).  
+> Este documento define la estructura oficial de las 7 tablas de la base de datos relacional (SQLite) para la API de **Feria Imperio**, desarrollada por Vertex Solutions S.A.S. para la Tecnicatura Superior en Desarrollo de Software (ITEC).  
 > **Alcance de Pedidos/Carrito:** El carrito de compras se gestiona en el Frontend (`localStorage`) y la compra se finaliza mediante coordinación directa por WhatsApp. Por lo tanto, no se requiere tabla transaccional de órdenes/pedidos en la versión 1.
 
 ---
 
-## 📊 Resumen de las 8 Tablas
+## 📊 Resumen de las 7 Tablas
 
 | # | Tabla (`__tablename__`) | Modelo SQLModel | Descripción / Propósito |
 |---|-------------------------|-----------------|-------------------------|
-| 1 | `usuarios`              | `Usuario`       | Autenticación, login y control de roles (`admin`, `emprendedor`, `cliente`). |
-| 2 | `emprendedores`         | `Emprendedor`   | Perfil público del puesto/feriante, bio, WhatsApp, plan asignado y feria. |
-| 3 | `productos`             | `Producto`      | Catálogo de productos publicados por cada emprendedor. |
-| 4 | `planes`                | `Plan`          | Reglas de monetización y límites máximos de productos (`limite_productos`). |
-| 5 | `rubros`                | `Rubro`         | Clasificación del emprendimiento (ej: Artesanías, Gastronomía, Cuero). |
-| 6 | `categorias`            | `Categoria`     | Clasificación específica de productos (ej: Mates, Billeteras, Mermeladas). |
-| 7 | `ferias`                | `Feria`         | Fechas y ubicaciones de ferias locales (ej: Parque Sarmiento, Paseo del Andino). |
-| 8 | `contactos`             | `Contacto`      | Mensajes del formulario de contacto y solicitudes de nuevos feriantes. |
+| 1 | `usuarios`              | `Usuario`       | Gestión de usuarios y control de roles (`admin`, `emprendedor`, `cliente`). |
+| 2 | `emprendedores`         | `Emprendedor`   | Perfil público del puesto/feriante, bio, WhatsApp, rubro y feria asignada. |
+| 3 | `productos`             | `Producto`      | Catálogo de productos publicados por cada emprendedor (límite uniforme). |
+| 4 | `rubros`                | `Rubro`         | Clasificación del emprendimiento (ej: Artesanías, Gastronomía, Cuero). |
+| 5 | `categorias`            | `Categoria`     | Clasificación específica de productos (ej: Mates, Billeteras, Mermeladas). |
+| 6 | `ferias`                | `Feria`         | Fechas y ubicaciones de ferias locales (ej: Parque Sarmiento, Paseo del Andino). |
+| 7 | `contactos`             | `Contacto`      | Mensajes del formulario de contacto y solicitudes de nuevos feriantes. |
 
 ---
 
@@ -55,7 +54,6 @@ class Emprendedor(SQLModel, table=True):
     banner_url: Optional[str] = Field(default=None, max_length=255)
     rubro_id: int = Field(foreign_key="rubros.id", nullable=False)
     feria_id: Optional[int] = Field(default=None, foreign_key="ferias.id")
-    plan_id: int = Field(foreign_key="planes.id", nullable=False)
     destacado: bool = Field(default=False)
     activo: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -80,22 +78,7 @@ class Producto(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 ```
 
-### 4. `planes` (`Plan`)
-Define las suscripciones para los emprendedores y los límites del catálogo.
-```python
-class Plan(SQLModel, table=True):
-    __tablename__ = "planes"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    nombre: str = Field(unique=True, max_length=100, nullable=False)  # Ej: 'Gratuito', 'Feria Plus', 'Feria Golden Plus'
-    limite_productos: int = Field(default=5, nullable=False)  # Cupo máximo de productos permitidos
-    precio_mensual: float = Field(default=0.0, nullable=False)
-    permite_destacados: bool = Field(default=False)
-    descripcion: Optional[str] = Field(default=None, max_length=255)
-    activo: bool = Field(default=True)
-```
-
-### 5. `rubros` (`Rubro`)
+### 4. `rubros` (`Rubro`)
 Clasificación comercial del emprendimiento (rubro del puesto).
 ```python
 class Rubro(SQLModel, table=True):
@@ -107,8 +90,8 @@ class Rubro(SQLModel, table=True):
     activo: bool = Field(default=True)
 ```
 
-### 6. `categorias` (`Categoria`)
-Categorización de artículos individuales (ya iniciada en `src/models/categoria.py`).
+### 5. `categorias` (`Categoria`)
+Categorización de artículos individuales (en `src/models/categoria.py`).
 ```python
 class Categoria(SQLModel, table=True):
     __tablename__ = "categorias"
@@ -120,7 +103,7 @@ class Categoria(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 ```
 
-### 7. `ferias` (`Feria`)
+### 6. `ferias` (`Feria`)
 Lugares y cronograma de las ferias presenciales de Río Cuarto.
 ```python
 class Feria(SQLModel, table=True):
@@ -135,7 +118,7 @@ class Feria(SQLModel, table=True):
     activa: bool = Field(default=True)
 ```
 
-### 8. `contactos` (`Contacto`)
+### 7. `contactos` (`Contacto`)
 Bandeja de entrada para consultas de visitantes y postulaciones de feriantes.
 ```python
 class Contacto(SQLModel, table=True):
@@ -155,10 +138,10 @@ class Contacto(SQLModel, table=True):
 
 ## ⚙️ Reglas de Negocio en Backend
 
-1. **Validación del Límite del Plan al crear Producto:**
+1. **Validación del Límite Uniforme al crear Producto:**
    - Endpoint: `POST /api/v1/productos/`
-   - Lógica: Contar los productos activos del emprendedor. Si `conteo >= plan.limite_productos`, la API responde `HTTP 403 Forbidden` impidiendo la creación del producto.
-2. **Rol Emprendedor:**
-   - Un usuario con rol `emprendedor` solo puede editar o eliminar sus propios productos (`producto.emprendedor_id == current_user_emprendedor.id`).
-3. **Rol Administrador:**
-   - Tiene acceso a CRUD completo de `planes`, `rubros`, `categorias`, `ferias`, gestión de feriantes y lectura de mensajes en `contactos`.
+   - Lógica: Todos los feriantes gozan de los mismos beneficios. El cupo máximo compartido es de 50 productos activos (`LIMITE_PRODUCTOS_UNIFORME = 50`). Si `conteo >= 50`, la API responde `HTTP 403 Forbidden` impidiendo la creación del producto.
+2. **Relación Emprendedor - Usuario:**
+   - Cada perfil de emprendedor se vincula 1:1 con un usuario (`usuario_id` único).
+3. **Acceso a Entidades:**
+   - Acceso a operaciones CRUD de `rubros`, `categorias`, `ferias`, gestión de feriantes y lectura de mensajes en `contactos`.

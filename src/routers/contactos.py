@@ -25,7 +25,7 @@ def create_contacto(
     session: Session = Depends(get_session),
 ) -> Contacto:
     """
-    Envía una consulta o postulación desde el formulario de contacto web.
+    Envía una consulta o postulación desde el formulario de contacto web
     """
     contacto_db = Contacto.model_validate(contacto_in)
     session.add(contacto_db)
@@ -45,7 +45,7 @@ def read_contactos(
     session: Session = Depends(get_session),
 ):
     """
-    Retorna la bandeja de entrada de mensajes de contacto y postulaciones de manera paginada.
+    Devuelve la bandeja de entrada de mensajes de contacto y postulaciones de manera paginada
     """
     statement = select(Contacto)
     if leido is not None:
@@ -72,7 +72,7 @@ def read_contacto(
     session: Session = Depends(get_session),
 ) -> Contacto:
     """
-    Lee un mensaje de contacto específico.
+    Lee un mensaje de contacto o postulación por id
     """
     contacto = session.get(Contacto, contacto_id)
     if not contacto:
@@ -100,7 +100,7 @@ def update_contacto(
     session: Session = Depends(get_session),
 ) -> Contacto:
     """
-    Permite marcar un mensaje como leído o pendiente.
+    Permite marcar un mensaje como leído o pendiente
     """
     contacto_db = session.get(Contacto, contacto_id)
     if not contacto_db:
@@ -135,7 +135,7 @@ def delete_contacto(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina un mensaje de contacto de la bandeja de entrada.
+    Elimina un mensaje de contacto
     """
     contacto_db = session.get(Contacto, contacto_id)
     if not contacto_db:
