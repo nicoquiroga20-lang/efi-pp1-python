@@ -2,11 +2,18 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from src.db.session import get_session
 from src.models.rubro import Rubro
-from src.schemas.rubro import RubroCreate, RubroRead, RubroUpdate
+from src.models.emprendedor import Emprendedor
+from src.schemas.rubro import (
+    RubroCreate,
+    RubroRead,
+    RubroUpdate,
+    RubroPublicNested,
+)
 
 router = APIRouter(
     prefix="/rubros",
@@ -19,6 +26,12 @@ router = APIRouter(
     response_model=RubroRead,
     status_code=status.HTTP_201_CREATED,
     summary="Crear un nuevo rubro",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Nombre de rubro duplicado",
+            "content": {"application/json": {"example": {"detail": "Ya existe un rubro con el nombre 'Gastronomía'"}}},
+        }
+    },
 )
 def create_rubro(
     rubro_in: RubroCreate,
@@ -61,7 +74,7 @@ def read_rubros(
 
 @router.get(
     "/{rubro_id}",
-    response_model=RubroRead,
+    response_model=RubroPublicNested,
     summary="Obtener detalle de un rubro",
     responses={
         status.HTTP_404_NOT_FOUND: {
@@ -75,7 +88,7 @@ def read_rubro(
     session: Session = Depends(get_session),
 ) -> Rubro:
     """
-    Busca y devuelve un rubro por su id
+    Busca y devuelve un rubro por su id con sus emprendedores asociados
     """
     rubro = session.get(Rubro, rubro_id)
     if not rubro:
@@ -94,7 +107,11 @@ def read_rubro(
         status.HTTP_404_NOT_FOUND: {
             "description": "Rubro no encontrado",
             "content": {"application/json": {"example": {"detail": "Rubro con ID 1 no encontrado"}}},
-        }
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Nombre de rubro duplicado",
+            "content": {"application/json": {"example": {"detail": "Ya existe un rubro con el nombre 'Gastronomía'"}}},
+        },
     },
 )
 def update_rubro(
@@ -111,6 +128,19 @@ def update_rubro(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Rubro con ID {rubro_id} no encontrado",
         )
+
+    if rubro_in.nombre is not None:
+        existente = session.exec(
+            select(Rubro).where(
+                Rubro.nombre == rubro_in.nombre,
+                Rubro.id != rubro_id,
+            )
+        ).first()
+        if existente:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ya existe un rubro con el nombre '{rubro_in.nombre}'",
+            )
 
     rubro_data = rubro_in.model_dump(exclude_unset=True)
     for key, value in rubro_data.items():
@@ -130,7 +160,11 @@ def update_rubro(
         status.HTTP_404_NOT_FOUND: {
             "description": "Rubro no encontrado",
             "content": {"application/json": {"example": {"detail": "Rubro con ID 1 no encontrado"}}},
-        }
+        },
+        status.HTTP_409_CONFLICT: {
+            "description": "Conflicto: posee emprendedores asociados",
+            "content": {"application/json": {"example": {"detail": "No se puede eliminar el rubro porque posee emprendedores asociados."}}},
+        },
     },
 )
 def delete_rubro(
@@ -138,7 +172,8 @@ def delete_rubro(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina "físicamente" un rubro de la db
+    Elimina un rubro de la base de datos por su id.
+    Verifica que no tenga emprendedores asociados antes de proceder.
     """
     rubro_db = session.get(Rubro, rubro_id)
     if not rubro_db:
@@ -147,6 +182,18 @@ def delete_rubro(
             detail=f"Rubro con ID {rubro_id} no encontrado",
         )
 
+    count_emp_stmt = select(func.count(Emprendedor.id)).where(Emprendedor.rubro_id == rubro_id)
+    emprendedores_count = session.exec(count_emp_stmt).one()
+    if emprendedores_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No se puede eliminar el rubro con ID {rubro_id} "
+                f"porque posee {emprendedores_count} emprendedor(es) asociado(s). Reasigne o elimine los emprendedores primero."
+            ),
+        )
+
     session.delete(rubro_db)
     session.commit()
+
 

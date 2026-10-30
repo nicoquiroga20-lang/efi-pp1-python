@@ -2,21 +2,18 @@ from typing import Annotated, List, Optional, TYPE_CHECKING
 from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
-from src.models.rubro import RubroPublic
-from src.models.feria import FeriaPublic
-
 if TYPE_CHECKING:
-    from src.models.usuario import Usuario
-    from src.models.rubro import Rubro
-    from src.models.feria import Feria
-    from src.models.producto import Producto
+    from src.models.usuario import Usuario, UsuarioPublic
+    from src.models.rubro import Rubro, RubroPublic
+    from src.models.feria import Feria, FeriaPublic
+    from src.models.producto import Producto, ProductoPublic
 
 
 class EmprendedorBase(SQLModel):
     """Campos compartidos para Emprendedor."""
-    nombre_fantasia: Annotated[str, Field(index=True, max_length=150, nullable=False)]
+    nombre_fantasia: Annotated[str, Field(index=True, min_length=1, max_length=150, nullable=False)]
     descripcion_bio: Annotated[Optional[str], Field(default=None, max_length=500)]
-    telefono_whatsapp: Annotated[str, Field(max_length=30, nullable=False)]
+    telefono_whatsapp: Annotated[str, Field(min_length=1, max_length=30, nullable=False)]
     instagram: Annotated[Optional[str], Field(default=None, max_length=100)]
     numero_puesto: Annotated[Optional[str], Field(default=None, max_length=50)]
     logo_url: Annotated[Optional[str], Field(default=None, max_length=255)]
@@ -51,8 +48,10 @@ class EmprendedorPublic(EmprendedorBase):
 
 class EmprendedorPublicNested(EmprendedorPublic):
     """Esquema anidado (Nested) con información de relaciones."""
-    rubro: Optional[RubroPublic] = None
-    feria: Optional[FeriaPublic] = None
+    rubro: Optional["RubroPublic"] = None
+    feria: Optional["FeriaPublic"] = None
+    usuario: Optional["UsuarioPublic"] = None
+    productos: List["ProductoPublic"] = []
 
 
 class EmprendedorCreate(EmprendedorBase):
@@ -62,14 +61,16 @@ class EmprendedorCreate(EmprendedorBase):
 
 class EmprendedorUpdate(SQLModel):
     """Esquema para actualizar Emprendedor."""
-    nombre_fantasia: Optional[str] = None
-    descripcion_bio: Optional[str] = None
-    telefono_whatsapp: Optional[str] = None
-    instagram: Optional[str] = None
-    numero_puesto: Optional[str] = None
-    logo_url: Optional[str] = None
-    banner_url: Optional[str] = None
-    rubro_id: Optional[int] = None
-    feria_id: Optional[int] = None
+    nombre_fantasia: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    descripcion_bio: Optional[str] = Field(default=None, max_length=500)
+    telefono_whatsapp: Optional[str] = Field(default=None, min_length=1, max_length=30)
+    instagram: Optional[str] = Field(default=None, max_length=100)
+    numero_puesto: Optional[str] = Field(default=None, max_length=50)
+    logo_url: Optional[str] = Field(default=None, max_length=255)
+    banner_url: Optional[str] = Field(default=None, max_length=255)
+    rubro_id: Optional[int] = Field(default=None, gt=0)
+    feria_id: Optional[int] = Field(default=None, gt=0)
     destacado: Optional[bool] = None
     activo: Optional[bool] = None
+
+

@@ -2,12 +2,9 @@ from typing import Annotated, Optional, TYPE_CHECKING
 from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
-from src.models.categoria import CategoriaPublic
-from src.models.emprendedor import EmprendedorPublic
-
 if TYPE_CHECKING:
-    from src.models.emprendedor import Emprendedor
-    from src.models.categoria import Categoria
+    from src.models.emprendedor import Emprendedor, EmprendedorPublic
+    from src.models.categoria import Categoria, CategoriaPublic
 
 
 class ProductoBase(SQLModel):
@@ -44,8 +41,8 @@ class ProductoPublic(ProductoBase):
 
 class ProductoPublicNested(ProductoPublic):
     """Esquema anidado (Nested) con información de Categoria y Emprendedor."""
-    categoria: Optional[CategoriaPublic] = None
-    emprendedor: Optional[EmprendedorPublic] = None
+    categoria: Optional["CategoriaPublic"] = None
+    emprendedor: Optional["EmprendedorPublic"] = None
 
 
 class ProductoCreate(ProductoBase):
@@ -55,12 +52,13 @@ class ProductoCreate(ProductoBase):
 
 class ProductoUpdate(SQLModel):
     """Esquema para actualizar Producto."""
-    emprendedor_id: Optional[int] = None
-    categoria_id: Optional[int] = None
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
-    precio: Optional[float] = None
-    imagen_url: Optional[str] = None
+    emprendedor_id: Optional[int] = Field(default=None, gt=0)
+    categoria_id: Optional[int] = Field(default=None, gt=0)
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    descripcion: Optional[str] = Field(default=None, max_length=500)
+    precio: Optional[float] = Field(default=None, ge=0.0)
+    imagen_url: Optional[str] = Field(default=None, max_length=255)
     en_stock: Optional[bool] = None
     destacado: Optional[bool] = None
     activo: Optional[bool] = None
+

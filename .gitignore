@@ -14,9 +14,8 @@ ENV/
 .env
 !.env.example
 
-# Tests & Context
+# Context
 GEMINI.md
-tests/
 
 # Logs
 *.log

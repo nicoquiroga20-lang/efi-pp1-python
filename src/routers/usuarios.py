@@ -2,11 +2,13 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 import bcrypt
 from src.db.session import get_session
-from src.models.usuario import Usuario, UsuarioCreate, UsuarioPublic, UsuarioUpdate
+from src.models.usuario import Usuario, UsuarioCreate, UsuarioPublic, UsuarioPublicNested, UsuarioUpdate
+from src.models.emprendedor import Emprendedor
 
 
 def hash_password(password: str) -> str:
@@ -26,6 +28,12 @@ router = APIRouter(
     response_model=UsuarioPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Crear un nuevo usuario",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Correo electrónico ya registrado",
+            "content": {"application/json": {"example": {"detail": "Ya existe un usuario registrado con este correo electrónico"}}},
+        }
+    },
 )
 def create_usuario(
     usuario_in: UsuarioCreate,
@@ -77,7 +85,7 @@ def read_usuarios(
 
 @router.get(
     "/{usuario_id}",
-    response_model=UsuarioPublic,
+    response_model=UsuarioPublicNested,
     summary="Obtener usuario por ID",
     responses={
         status.HTTP_404_NOT_FOUND: {
@@ -91,7 +99,7 @@ def read_usuario(
     session: Session = Depends(get_session),
 ) -> Usuario:
     """
-    Consulta los datos de un usuario por su id
+    Consulta los datos de un usuario por su id incluyendo su perfil de emprendedor asociado
     """
     usuario = session.get(Usuario, usuario_id)
     if not usuario:
@@ -151,7 +159,11 @@ def update_usuario(
         status.HTTP_404_NOT_FOUND: {
             "description": "Usuario no encontrado",
             "content": {"application/json": {"example": {"detail": "Usuario con ID 1 no encontrado"}}},
-        }
+        },
+        status.HTTP_409_CONFLICT: {
+            "description": "Conflicto: posee perfil de emprendedor asociado",
+            "content": {"application/json": {"example": {"detail": "No se puede eliminar el usuario porque tiene un perfil de emprendedor asociado."}}},
+        },
     },
 )
 def delete_usuario(
@@ -159,7 +171,8 @@ def delete_usuario(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina un usuario del sistema por su id
+    Elimina un usuario del sistema por su id.
+    Verifica previamente que no posea un perfil de emprendedor vinculado.
     """
     usuario_db = session.get(Usuario, usuario_id)
     if not usuario_db:
@@ -168,5 +181,17 @@ def delete_usuario(
             detail=f"Usuario con ID {usuario_id} no encontrado",
         )
 
+    count_emp_stmt = select(func.count(Emprendedor.id)).where(Emprendedor.usuario_id == usuario_id)
+    emp_count = session.exec(count_emp_stmt).one()
+    if emp_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No se puede eliminar el usuario con ID {usuario_id} "
+                f"porque posee un perfil de emprendedor asociado. Elimine primero el perfil de emprendedor."
+            ),
+        )
+
     session.delete(usuario_db)
     session.commit()
+

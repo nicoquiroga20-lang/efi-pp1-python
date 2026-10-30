@@ -3,12 +3,12 @@ from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
-    from src.models.producto import Producto
+    from src.models.producto import Producto, ProductoPublic
 
 
 class CategoriaBase(SQLModel):
     """Campos compartidos para Categoria."""
-    nombre: Annotated[str, Field(index=True, max_length=100, nullable=False)]
+    nombre: Annotated[str, Field(index=True, min_length=1, max_length=100, nullable=False)]
     descripcion: Annotated[Optional[str], Field(default=None, max_length=255)]
     activo: Annotated[bool, Field(default=True)]
 
@@ -30,6 +30,11 @@ class CategoriaPublic(CategoriaBase):
     created_at: datetime
 
 
+class CategoriaPublicNested(CategoriaPublic):
+    """Esquema anidado (Nested) con información de productos."""
+    productos: List["ProductoPublic"] = []
+
+
 class CategoriaCreate(CategoriaBase):
     """Esquema para crear Categoria."""
     pass
@@ -37,6 +42,8 @@ class CategoriaCreate(CategoriaBase):
 
 class CategoriaUpdate(SQLModel):
     """Esquema para actualizar Categoria."""
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    descripcion: Optional[str] = Field(default=None, max_length=255)
     activo: Optional[bool] = None
+
+

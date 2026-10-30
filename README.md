@@ -6,7 +6,14 @@ Portal de visibilización y catálogo para feriantes y emprendedores de Río Cua
 
 API REST modular construida con **FastAPI**, **SQLModel** (SQLAlchemy + Pydantic), **SQLite**, migraciones con **Alembic**, paginación estandarizada con **fastapi-pagination** y servidor **Uvicorn**.
 
+## 👥 Integrantes del Equipo
+- **Alejo Alaminos**
+- **Joaquin Fornasari**
+- **Franco Leone**
+- **Mauricio Nicolas Quiroga**
+
 ---
+
 
 ## 📁 Estructura del Proyecto
 
@@ -144,24 +151,25 @@ La API cuenta con documentación autogenerada y esquema OpenAPI:
 
 ## 🔌 Resumen de Endpoints CRUD (`/api/v1`)
 
-Todos los recursos cuentan con operaciones CRUD completas, paginación estandarizada (`page` y `size`) y respuestas 404 documentadas:
+Todos los recursos cuentan con operaciones CRUD completas, paginación estandarizada (`page` y `size`), esquemas anidados (`Nested`) para entidades con relaciones y respuestas `404`, `400` y `409` (Conflict por integridad referencial) documentadas en OpenAPI:
 
-| Recurso | Endpoints Principales | Descripción |
-| :--- | :--- | :--- |
-| **Usuarios** | `GET/POST /api/v1/usuarios/`, `GET/PUT/DELETE /api/v1/usuarios/{id}` | CRUD de usuarios y credenciales |
-| **Emprendedores** | `GET/POST /api/v1/emprendedores/`, `GET/PUT/DELETE /api/v1/emprendedores/{id}` | Gestión de perfiles de feriantes |
-| **Productos** | `GET/POST /api/v1/productos/`, `GET/PUT/DELETE /api/v1/productos/{id}` | Catálogo de productos (límite uniforme de 50 artículos) |
-| **Rubros** | `GET/POST /api/v1/rubros/`, `GET/PUT/DELETE /api/v1/rubros/{id}` | Rubros comerciales de feriantes |
-| **Categorías** | `GET/POST /api/v1/categorias/`, `GET/PUT/DELETE /api/v1/categorias/{id}` | Categorización de productos |
-| **Ferias** | `GET/POST /api/v1/ferias/`, `GET/PUT/DELETE /api/v1/ferias/{id}` | Ubicaciones y fechas de ferias |
-| **Contactos** | `GET/POST /api/v1/contactos/`, `GET/PUT/DELETE /api/v1/contactos/{id}` | Bandeja de mensajes y postulaciones |
+| Recurso | Endpoints Principales | Esquema Anidado (GET /{id}) | Descripción |
+| :--- | :--- | :--- | :--- |
+| **Usuarios** | `GET/POST /api/v1/usuarios/`, `GET/PUT/DELETE /api/v1/usuarios/{id}` | `UsuarioPublicNested` (+ emprendedor) | CRUD de usuarios, credenciales hasheadas y prevención de borrado con emprendedor vinculado (`409`) |
+| **Emprendedores** | `GET/POST /api/v1/emprendedores/`, `GET/PUT/DELETE /api/v1/emprendedores/{id}` | `EmprendedorPublicNested` (+ rubro, feria, usuario, productos) | Gestión de feriantes, validación de foráneas (`404`) y prevención de borrado con productos (`409`) |
+| **Productos** | `GET/POST /api/v1/productos/`, `GET/PUT/DELETE /api/v1/productos/{id}` | `ProductoPublicNested` (+ categoría, emprendedor) | Catálogo con límite uniforme de 50 artículos activos (controlado en creación y reactivación) |
+| **Rubros** | `GET/POST /api/v1/rubros/`, `GET/PUT/DELETE /api/v1/rubros/{id}` | `RubroPublicNested` (+ emprendedores) | Rubros comerciales, nombres únicos y prevención de borrado con emprendedores (`409`) |
+| **Categorías** | `GET/POST /api/v1/categorias/`, `GET/PUT/DELETE /api/v1/categorias/{id}` | `CategoriaPublicNested` (+ productos) | Categorización de productos, nombres únicos y prevención de borrado con productos (`409`) |
+| **Ferias** | `GET/POST /api/v1/ferias/`, `GET/PUT/DELETE /api/v1/ferias/{id}` | `FeriaPublicNested` (+ emprendedores) | Cronograma de ferias y prevención de borrado con emprendedores asignados (`409`) |
+| **Contactos** | `GET/POST /api/v1/contactos/`, `GET/PUT/DELETE /api/v1/contactos/{id}` | `ContactoPublic` | Bandeja de mensajes y postulaciones con filtrado |
 
 ---
 
 ## 🧪 Pruebas Automatizadas
 
-El proyecto incluye 22 pruebas unitarias e integrales que validan la estructura de modelos, migraciones Alembic, contratos OpenAPI (404) y operaciones CRUD:
+El proyecto incluye una suite de pruebas automatizadas que validan la estructura de modelos, migraciones Alembic, contratos OpenAPI (404/409/400), anidamientos y operaciones CRUD con integridad referencial:
 
 ```bash
-python -m unittest discover tests
+venv/bin/python -m unittest discover tests
 ```
+

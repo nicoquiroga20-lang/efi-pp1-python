@@ -3,6 +3,7 @@ from src.models.rubro import (
     RubroCreate,
     RubroUpdate,
     RubroPublic,
+    RubroPublicNested,
     RubroPublic as RubroRead,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "RubroCreate",
     "RubroUpdate",
     "RubroPublic",
+    "RubroPublicNested",
     "RubroRead",
 ]

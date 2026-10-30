@@ -12,7 +12,11 @@ from src.models.emprendedor import (
     EmprendedorPublicNested,
     EmprendedorUpdate,
 )
+from sqlalchemy import func
 from src.models.usuario import Usuario
+from src.models.rubro import Rubro
+from src.models.feria import Feria
+from src.models.producto import Producto
 
 router = APIRouter(
     prefix="/emprendedores",
@@ -25,14 +29,26 @@ router = APIRouter(
     response_model=EmprendedorPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Registrar un nuevo emprendedor / puesto",
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Usuario, Rubro o Feria no encontrado",
+            "content": {"application/json": {"example": {"detail": "Usuario con ID 1 no encontrado"}}},
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "El usuario ya posee un perfil de emprendedor",
+            "content": {"application/json": {"example": {"detail": "El usuario con ID 1 ya posee un perfil de emprendedor"}}},
+        },
+    },
 )
 def create_emprendedor(
     emprendedor_in: EmprendedorCreate,
     session: Session = Depends(get_session),
 ) -> Emprendedor:
     """
-    Crea un nuevo perfil de emprendedor de un usuario que ya existe en la db (registrado)
+    Crea un nuevo perfil de emprendedor de un usuario que ya existe en la db (registrado).
+    Valida la existencia del usuario, rubro y feria si es especificada.
     """
+    # 1. Validar usuario
     usuario = session.get(Usuario, emprendedor_in.usuario_id)
     if not usuario:
         raise HTTPException(
@@ -40,6 +56,7 @@ def create_emprendedor(
             detail=f"Usuario con ID {emprendedor_in.usuario_id} no encontrado",
         )
 
+    # 2. Validar que no tenga ya perfil
     existente = session.exec(
         select(Emprendedor).where(Emprendedor.usuario_id == emprendedor_in.usuario_id)
     ).first()
@@ -48,6 +65,23 @@ def create_emprendedor(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"El usuario con ID {emprendedor_in.usuario_id} ya posee un perfil de emprendedor",
         )
+
+    # 3. Validar rubro
+    rubro = session.get(Rubro, emprendedor_in.rubro_id)
+    if not rubro:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Rubro con ID {emprendedor_in.rubro_id} no encontrado",
+        )
+
+    # 4. Validar feria si se especifica
+    if emprendedor_in.feria_id is not None:
+        feria = session.get(Feria, emprendedor_in.feria_id)
+        if not feria:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Feria con ID {emprendedor_in.feria_id} no encontrada",
+            )
 
     emprendedor = Emprendedor.model_validate(emprendedor_in)
     session.add(emprendedor)
@@ -117,7 +151,7 @@ def read_emprendedor(
     summary="Actualizar información de un emprendedor",
     responses={
         status.HTTP_404_NOT_FOUND: {
-            "description": "Emprendedor no encontrado",
+            "description": "Emprendedor, Rubro o Feria no encontrado",
             "content": {"application/json": {"example": {"detail": "Emprendedor con ID 1 no encontrado"}}},
         }
     },
@@ -128,7 +162,8 @@ def update_emprendedor(
     session: Session = Depends(get_session),
 ) -> Emprendedor:
     """
-    Permite actualizar cualquier dato del emprendedor por su id
+    Permite actualizar cualquier dato del emprendedor por su id.
+    Valida la existencia del nuevo rubro o feria si son modificados.
     """
     emprendedor_db = session.get(Emprendedor, emprendedor_id)
     if not emprendedor_db:
@@ -136,6 +171,24 @@ def update_emprendedor(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Emprendedor con ID {emprendedor_id} no encontrado",
         )
+
+    # Validar rubro si se actualiza
+    if emprendedor_in.rubro_id is not None:
+        rubro = session.get(Rubro, emprendedor_in.rubro_id)
+        if not rubro:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Rubro con ID {emprendedor_in.rubro_id} no encontrado",
+            )
+
+    # Validar feria si se actualiza
+    if emprendedor_in.feria_id is not None:
+        feria = session.get(Feria, emprendedor_in.feria_id)
+        if not feria:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Feria con ID {emprendedor_in.feria_id} no encontrada",
+            )
 
     data = emprendedor_in.model_dump(exclude_unset=True)
     for key, value in data.items():
@@ -155,7 +208,11 @@ def update_emprendedor(
         status.HTTP_404_NOT_FOUND: {
             "description": "Emprendedor no encontrado",
             "content": {"application/json": {"example": {"detail": "Emprendedor con ID 1 no encontrado"}}},
-        }
+        },
+        status.HTTP_409_CONFLICT: {
+            "description": "Conflicto: posee productos asociados",
+            "content": {"application/json": {"example": {"detail": "No se puede eliminar el emprendedor porque posee productos asociados."}}},
+        },
     },
 )
 def delete_emprendedor(
@@ -163,7 +220,8 @@ def delete_emprendedor(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina un emprendedor de la base de datos por su id
+    Elimina un emprendedor de la base de datos por su id.
+    Verifica que no tenga productos asociados para prevenir fallos de integridad referencial.
     """
     emprendedor_db = session.get(Emprendedor, emprendedor_id)
     if not emprendedor_db:
@@ -172,6 +230,19 @@ def delete_emprendedor(
             detail=f"Emprendedor con ID {emprendedor_id} no encontrado",
         )
 
+    # Verificar productos dependientes
+    count_prod_stmt = select(func.count(Producto.id)).where(Producto.emprendedor_id == emprendedor_id)
+    productos_count = session.exec(count_prod_stmt).one()
+    if productos_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No se puede eliminar el emprendedor con ID {emprendedor_id} "
+                f"porque posee {productos_count} producto(s) asociado(s). Elimine o reasigne sus productos primero."
+            ),
+        )
+
     session.delete(emprendedor_db)
     session.commit()
+
 

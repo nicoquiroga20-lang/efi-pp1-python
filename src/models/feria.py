@@ -3,13 +3,13 @@ from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
-    from src.models.emprendedor import Emprendedor
+    from src.models.emprendedor import Emprendedor, EmprendedorPublic
 
 
 class FeriaBase(SQLModel):
     """Campos compartidos para Feria."""
-    nombre: Annotated[str, Field(index=True, max_length=150, nullable=False)]
-    ubicacion: Annotated[str, Field(max_length=255, nullable=False)]
+    nombre: Annotated[str, Field(index=True, min_length=1, max_length=150, nullable=False)]
+    ubicacion: Annotated[str, Field(min_length=1, max_length=255, nullable=False)]
     proxima_fecha: Annotated[Optional[datetime], Field(default=None)]
     horario: Annotated[Optional[str], Field(default=None, max_length=100)]
     descripcion: Annotated[Optional[str], Field(default=None, max_length=500)]
@@ -33,6 +33,11 @@ class FeriaPublic(FeriaBase):
     created_at: datetime
 
 
+class FeriaPublicNested(FeriaPublic):
+    """Esquema anidado (Nested) con información de emprendedores."""
+    emprendedores: List["EmprendedorPublic"] = []
+
+
 class FeriaCreate(FeriaBase):
     """Esquema para crear Feria."""
     pass
@@ -40,9 +45,11 @@ class FeriaCreate(FeriaBase):
 
 class FeriaUpdate(SQLModel):
     """Esquema para actualizar Feria."""
-    nombre: Optional[str] = None
-    ubicacion: Optional[str] = None
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    ubicacion: Optional[str] = Field(default=None, min_length=1, max_length=255)
     proxima_fecha: Optional[datetime] = None
-    horario: Optional[str] = None
-    descripcion: Optional[str] = None
+    horario: Optional[str] = Field(default=None, max_length=100)
+    descripcion: Optional[str] = Field(default=None, max_length=500)
     activa: Optional[bool] = None
+
+

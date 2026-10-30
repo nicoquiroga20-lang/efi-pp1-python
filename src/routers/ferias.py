@@ -2,11 +2,18 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from src.db.session import get_session
 from src.models.feria import Feria
-from src.schemas.feria import FeriaCreate, FeriaRead, FeriaUpdate
+from src.models.emprendedor import Emprendedor
+from src.schemas.feria import (
+    FeriaCreate,
+    FeriaRead,
+    FeriaUpdate,
+    FeriaPublicNested,
+)
 
 router = APIRouter(
     prefix="/ferias",
@@ -54,7 +61,7 @@ def read_ferias(
 
 @router.get(
     "/{feria_id}",
-    response_model=FeriaRead,
+    response_model=FeriaPublicNested,
     summary="Obtener detalle de una feria",
     responses={
         status.HTTP_404_NOT_FOUND: {
@@ -68,7 +75,7 @@ def read_feria(
     session: Session = Depends(get_session),
 ) -> Feria:
     """
-    Busca y devuelve una feria específica por su id
+    Busca y devuelve una feria específica por su id junto con los emprendedores vinculados
     """
     feria = session.get(Feria, feria_id)
     if not feria:
@@ -123,7 +130,11 @@ def update_feria(
         status.HTTP_404_NOT_FOUND: {
             "description": "Feria no encontrada",
             "content": {"application/json": {"example": {"detail": "Feria con ID 1 no encontrada"}}},
-        }
+        },
+        status.HTTP_409_CONFLICT: {
+            "description": "Conflicto: posee emprendedores asignados",
+            "content": {"application/json": {"example": {"detail": "No se puede eliminar la feria porque posee emprendedores asignados."}}},
+        },
     },
 )
 def delete_feria(
@@ -131,7 +142,8 @@ def delete_feria(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina "físicament"e una feria de la db
+    Elimina una feria de la base de datos por su id.
+    Verifica previamente que no tenga emprendedores asignados.
     """
     feria_db = session.get(Feria, feria_id)
     if not feria_db:
@@ -140,6 +152,18 @@ def delete_feria(
             detail=f"Feria con ID {feria_id} no encontrada",
         )
 
+    count_emp_stmt = select(func.count(Emprendedor.id)).where(Emprendedor.feria_id == feria_id)
+    emprendedores_count = session.exec(count_emp_stmt).one()
+    if emprendedores_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No se puede eliminar la feria con ID {feria_id} "
+                f"porque posee {emprendedores_count} emprendedor(es) asignado(s). Reasigne o desvincule los emprendedores primero."
+            ),
+        )
+
     session.delete(feria_db)
     session.commit()
+
 

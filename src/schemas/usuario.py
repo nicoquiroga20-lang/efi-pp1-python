@@ -3,6 +3,7 @@ from src.models.usuario import (
     UsuarioCreate,
     UsuarioUpdate,
     UsuarioPublic,
+    UsuarioPublicNested,
     UsuarioPublic as UsuarioRead,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "UsuarioCreate",
     "UsuarioUpdate",
     "UsuarioPublic",
+    "UsuarioPublicNested",
     "UsuarioRead",
 ]

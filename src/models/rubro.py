@@ -3,12 +3,12 @@ from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
-    from src.models.emprendedor import Emprendedor
+    from src.models.emprendedor import Emprendedor, EmprendedorPublic
 
 
 class RubroBase(SQLModel):
     """Campos compartidos para Rubro."""
-    nombre: Annotated[str, Field(unique=True, index=True, max_length=100, nullable=False)]
+    nombre: Annotated[str, Field(unique=True, index=True, min_length=1, max_length=100, nullable=False)]
     descripcion: Annotated[Optional[str], Field(default=None, max_length=255)]
     activo: Annotated[bool, Field(default=True)]
 
@@ -30,6 +30,11 @@ class RubroPublic(RubroBase):
     created_at: datetime
 
 
+class RubroPublicNested(RubroPublic):
+    """Esquema anidado (Nested) con información de emprendedores."""
+    emprendedores: List["EmprendedorPublic"] = []
+
+
 class RubroCreate(RubroBase):
     """Esquema para crear Rubro."""
     pass
@@ -37,6 +42,8 @@ class RubroCreate(RubroBase):
 
 class RubroUpdate(SQLModel):
     """Esquema para actualizar Rubro."""
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    descripcion: Optional[str] = Field(default=None, max_length=255)
     activo: Optional[bool] = None
+
+

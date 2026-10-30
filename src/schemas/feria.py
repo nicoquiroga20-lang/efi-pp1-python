@@ -3,6 +3,7 @@ from src.models.feria import (
     FeriaCreate,
     FeriaUpdate,
     FeriaPublic,
+    FeriaPublicNested,
     FeriaPublic as FeriaRead,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "FeriaCreate",
     "FeriaUpdate",
     "FeriaPublic",
+    "FeriaPublicNested",
     "FeriaRead",
 ]

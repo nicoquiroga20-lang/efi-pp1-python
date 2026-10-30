@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
-    from src.models.emprendedor import Emprendedor
+    from src.models.emprendedor import Emprendedor, EmprendedorPublic
 
 
 class UsuarioBase(SQLModel):
@@ -32,14 +32,21 @@ class UsuarioPublic(UsuarioBase):
     created_at: datetime
 
 
+class UsuarioPublicNested(UsuarioPublic):
+    """Esquema anidado (Nested) con información de perfil de Emprendedor."""
+    emprendedor: Optional["EmprendedorPublic"] = None
+
+
 class UsuarioCreate(UsuarioBase):
     """Esquema para crear Usuario."""
-    password: str
+    password: str = Field(min_length=4)
 
 
 class UsuarioUpdate(SQLModel):
     """Esquema para actualizar Usuario."""
-    nombre_completo: Optional[str] = None
-    password: Optional[str] = None
-    rol: Optional[str] = None
+    nombre_completo: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    password: Optional[str] = Field(default=None, min_length=4)
+    rol: Optional[str] = Field(default=None, regex=r"^(cliente|emprendedor|admin)$")
     activo: Optional[bool] = None
+
+

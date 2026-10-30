@@ -3,6 +3,7 @@ from src.models.categoria import (
     CategoriaCreate,
     CategoriaUpdate,
     CategoriaPublic,
+    CategoriaPublicNested,
     CategoriaPublic as CategoriaRead,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "CategoriaCreate",
     "CategoriaUpdate",
     "CategoriaPublic",
+    "CategoriaPublicNested",
     "CategoriaRead",
 ]

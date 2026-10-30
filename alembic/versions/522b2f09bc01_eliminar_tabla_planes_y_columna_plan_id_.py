@@ -91,6 +91,12 @@ def downgrade() -> None:
     """))
     bind.execute(sa.text("CREATE UNIQUE INDEX ix_planes_nombre ON planes (nombre)"))
 
+    # Insertar plan base id=1 para que los emprendedores tengan una referencia válida
+    bind.execute(sa.text("""
+        INSERT INTO planes (id, nombre, limite_productos, precio_mensual, permite_destacados, descripcion, activo, created_at)
+        VALUES (1, 'Plan Base Inicial', 50, 0.0, 1, 'Plan base asignado por downgrade', 1, CURRENT_TIMESTAMP)
+    """))
+
     # Recrear emprendedores con plan_id
     bind.execute(sa.text("""
         CREATE TABLE emprendedores_old (

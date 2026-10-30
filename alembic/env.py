@@ -14,9 +14,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Configurar la URL de SQLAlchemy dinámicamente desde settings si no fue provista
-if not config.get_main_option("sqlalchemy.url"):
-    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Configurar la URL de SQLAlchemy dinámicamente desde settings del proyecto
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Metadatos de SQLModel para soporte de autogeneración de migraciones
 target_metadata = SQLModel.metadata
