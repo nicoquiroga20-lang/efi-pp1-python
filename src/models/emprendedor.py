@@ -4,13 +4,11 @@ from sqlmodel import SQLModel, Field, Relationship
 
 from src.models.rubro import RubroPublic
 from src.models.feria import FeriaPublic
-from src.models.plan import PlanPublic
 
 if TYPE_CHECKING:
     from src.models.usuario import Usuario
     from src.models.rubro import Rubro
     from src.models.feria import Feria
-    from src.models.plan import Plan
     from src.models.producto import Producto
 
 
@@ -25,7 +23,6 @@ class EmprendedorBase(SQLModel):
     banner_url: Annotated[Optional[str], Field(default=None, max_length=255)]
     rubro_id: Annotated[int, Field(foreign_key="rubros.id", nullable=False)]
     feria_id: Annotated[Optional[int], Field(default=None, foreign_key="ferias.id")]
-    plan_id: Annotated[int, Field(default=1, foreign_key="planes.id", nullable=False)]
     destacado: Annotated[bool, Field(default=False)]
     activo: Annotated[bool, Field(default=True)]
 
@@ -42,7 +39,6 @@ class Emprendedor(EmprendedorBase, table=True):
     usuario: Optional["Usuario"] = Relationship(back_populates="emprendedor")
     rubro: Optional["Rubro"] = Relationship(back_populates="emprendedores")
     feria: Optional["Feria"] = Relationship(back_populates="emprendedores")
-    plan: Optional["Plan"] = Relationship(back_populates="emprendedores")
     productos: List["Producto"] = Relationship(back_populates="emprendedor")
 
 
@@ -57,7 +53,6 @@ class EmprendedorPublicNested(EmprendedorPublic):
     """Esquema anidado (Nested) con información de relaciones."""
     rubro: Optional[RubroPublic] = None
     feria: Optional[FeriaPublic] = None
-    plan: Optional[PlanPublic] = None
 
 
 class EmprendedorCreate(EmprendedorBase):
@@ -76,6 +71,5 @@ class EmprendedorUpdate(SQLModel):
     banner_url: Optional[str] = None
     rubro_id: Optional[int] = None
     feria_id: Optional[int] = None
-    plan_id: Optional[int] = None
     destacado: Optional[bool] = None
     activo: Optional[bool] = None

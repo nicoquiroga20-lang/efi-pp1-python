@@ -7,9 +7,11 @@ from sqlmodel import Session, select, col
 
 from src.db.session import get_session
 from src.models.emprendedor import Emprendedor
-from src.models.plan import Plan
 from src.models.producto import Producto, ProductoPublicNested
 from src.schemas.producto import ProductoCreate, ProductoRead, ProductoUpdate
+
+# Límite de productos uniforme para todos los emprendedores
+LIMITE_PRODUCTOS_UNIFORME = 50
 
 router = APIRouter(
     prefix="/productos",
@@ -28,9 +30,9 @@ def create_producto(
     session: Session = Depends(get_session),
 ) -> Producto:
     """
-    Publica un nuevo producto en el catálogo del emprendedor especificado.
-    Valida que el número de productos activos actuales no supere el 'limite_productos'
-    establecido en el Plan asignado al emprendedor.
+    Publica un nuevo producto en el catálogo del emprendedor
+    Todos los emprendedores comparten el mismo límite de productos activos
+    (LIMITE_PRODUCTOS_UNIFORME = 50).
     """
     # 1. Validar que el emprendedor exista
     emprendedor = session.get(Emprendedor, producto_in.emprendedor_id)
@@ -40,29 +42,23 @@ def create_producto(
             detail=f"Emprendedor con ID {producto_in.emprendedor_id} no encontrado",
         )
 
-    # 2. Obtener el plan del emprendedor
-    plan = session.get(Plan, emprendedor.plan_id)
-    limite = plan.limite_productos if plan else 5
-
-    # 3. Contar productos activos del emprendedor
+    # 2. Contar productos activos del emprendedor
     count_stmt = select(func.count(Producto.id)).where(
         Producto.emprendedor_id == emprendedor.id,
         Producto.activo == True,
     )
     productos_actuales = session.exec(count_stmt).one()
 
-    # 4. Validar cupo
-    if productos_actuales >= limite:
-        nombre_plan = plan.nombre if plan else "Plan actual"
+    # 3. Validar cupo uniforme
+    if productos_actuales >= LIMITE_PRODUCTOS_UNIFORME:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
-                f"Ha alcanzado el límite máximo de productos de su plan '{nombre_plan}' "
-                f"({limite} productos permitidos). Actualice su plan para publicar más artículos."
+                f"Ha alcanzado el límite máximo de {LIMITE_PRODUCTOS_UNIFORME} productos activos permitidos."
             ),
         )
 
-    # 5. Crear el producto
+    # 4. Crear el producto
     producto_db = Producto.model_validate(producto_in)
     session.add(producto_db)
     session.commit()
@@ -85,7 +81,7 @@ def read_productos(
     session: Session = Depends(get_session),
 ):
     """
-    Retorna el catálogo de productos con paginación y soporte de filtros múltiples.
+    Devuelve el catálogo de productos con paginación y soporte de filtros
     """
     statement = select(Producto)
 
@@ -126,7 +122,7 @@ def read_producto(
     session: Session = Depends(get_session),
 ) -> Producto:
     """
-    Consulta la ficha técnica completa de un producto por su ID.
+    Consulta la ficha técnica completa de un producto por su id
     """
     producto = session.get(Producto, producto_id)
     if not producto:
@@ -154,7 +150,7 @@ def update_producto(
     session: Session = Depends(get_session),
 ) -> Producto:
     """
-    Actualiza los datos de un producto.
+    Actualiza los datos de un producto
     """
     producto_db = session.get(Producto, producto_id)
     if not producto_db:
@@ -189,7 +185,7 @@ def delete_producto(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina un producto del catálogo por su ID.
+    Elimina un producto del catálogo por su id
     """
     producto_db = session.get(Producto, producto_id)
     if not producto_db:

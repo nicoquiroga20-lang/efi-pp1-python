@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """
-    Configuración global de la aplicación.
-    Carga variables de entorno desde el archivo .env si existe.
+    Configuración global de la aplicación
+    Carga variables de entorno desde el archivo .env si existe
     """
     PROJECT_NAME: str = "EFI API CRUD"
     API_V1_STR: str = "/api/v1"

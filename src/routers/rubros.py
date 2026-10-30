@@ -25,7 +25,7 @@ def create_rubro(
     session: Session = Depends(get_session),
 ) -> Rubro:
     """
-    Crea un nuevo rubro para clasificar emprendimientos.
+    Crea un nuevo rubro para clasificar emprendimientos
     """
     existing = session.exec(select(Rubro).where(Rubro.nombre == rubro_in.nombre)).first()
     if existing:
@@ -51,7 +51,7 @@ def read_rubros(
     session: Session = Depends(get_session),
 ):
     """
-    Retorna la lista de rubros de manera paginada.
+    Devuelve la lista de rubros de manera paginada
     """
     statement = select(Rubro)
     if activo is not None:
@@ -75,7 +75,7 @@ def read_rubro(
     session: Session = Depends(get_session),
 ) -> Rubro:
     """
-    Busca y retorna un rubro por su ID.
+    Busca y devuelve un rubro por su id
     """
     rubro = session.get(Rubro, rubro_id)
     if not rubro:
@@ -103,7 +103,7 @@ def update_rubro(
     session: Session = Depends(get_session),
 ) -> Rubro:
     """
-    Actualiza el nombre o descripción de un rubro existente.
+    Actualiza el nombre o descripción de un rubro existente
     """
     rubro_db = session.get(Rubro, rubro_id)
     if not rubro_db:
@@ -138,7 +138,7 @@ def delete_rubro(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina físicamente un rubro de la base de datos.
+    Elimina "físicamente" un rubro de la db
     """
     rubro_db = session.get(Rubro, rubro_id)
     if not rubro_db:

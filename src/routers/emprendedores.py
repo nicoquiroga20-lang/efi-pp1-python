@@ -31,7 +31,7 @@ def create_emprendedor(
     session: Session = Depends(get_session),
 ) -> Emprendedor:
     """
-    Crea un nuevo perfil de emprendedor asociado a un usuario existente.
+    Crea un nuevo perfil de emprendedor de un usuario que ya existe en la db (registrado)
     """
     usuario = session.get(Usuario, emprendedor_in.usuario_id)
     if not usuario:
@@ -69,9 +69,9 @@ def read_emprendedores(
     session: Session = Depends(get_session),
 ):
     """
-    Retorna la lista de emprendedores de forma paginada para la vista de puestos en el frontend.
+    Devuelve la lista de emprendedores de forma paginada para la vista de puestos en el frontend
     """
-    statement = select(Emprendedor)
+    statement = select(Emprendedor) # query a la tabla Emprendedor
     if rubro_id is not None:
         statement = statement.where(Emprendedor.rubro_id == rubro_id)
     if feria_id is not None:
@@ -100,7 +100,7 @@ def read_emprendedor(
     session: Session = Depends(get_session),
 ) -> Emprendedor:
     """
-    Retorna los datos del puesto/emprendedor por su ID (nombre fantasía, bio, WhatsApp, banner, etc.).
+    Devuelve los datos del puesto/emprendedor por su id (nombre fantasía, bio, whatsApp, banner, etc)
     """
     emprendedor = session.get(Emprendedor, emprendedor_id)
     if not emprendedor:
@@ -128,7 +128,7 @@ def update_emprendedor(
     session: Session = Depends(get_session),
 ) -> Emprendedor:
     """
-    Permite actualizar cualquier dato del emprendedor por su ID.
+    Permite actualizar cualquier dato del emprendedor por su id
     """
     emprendedor_db = session.get(Emprendedor, emprendedor_id)
     if not emprendedor_db:
@@ -163,7 +163,7 @@ def delete_emprendedor(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina un emprendedor de la base de datos por su ID.
+    Elimina un emprendedor de la base de datos por su id
     """
     emprendedor_db = session.get(Emprendedor, emprendedor_id)
     if not emprendedor_db:

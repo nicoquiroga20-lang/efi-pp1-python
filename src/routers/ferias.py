@@ -25,7 +25,7 @@ def create_feria(
     session: Session = Depends(get_session),
 ) -> Feria:
     """
-    Registra una nueva feria o punto de encuentro en Río Cuarto.
+    Registra una nueva feria o punto de encuentro en Río Cuarto
     """
     feria_db = Feria.model_validate(feria_in)
     session.add(feria_db)
@@ -44,7 +44,7 @@ def read_ferias(
     session: Session = Depends(get_session),
 ):
     """
-    Retorna la lista de ferias y próximas fechas de manera paginada.
+    Retorna la lista de ferias y próximas fechas de manera paginada
     """
     statement = select(Feria)
     if activa is not None:
@@ -68,7 +68,7 @@ def read_feria(
     session: Session = Depends(get_session),
 ) -> Feria:
     """
-    Busca y retorna una feria específica por su ID.
+    Busca y devuelve una feria específica por su id
     """
     feria = session.get(Feria, feria_id)
     if not feria:
@@ -96,7 +96,7 @@ def update_feria(
     session: Session = Depends(get_session),
 ) -> Feria:
     """
-    Actualiza la fecha, horario, ubicación o datos de una feria existente.
+    Actualiza la fecha, horario, ubicación o datos de una feria que ya existe
     """
     feria_db = session.get(Feria, feria_id)
     if not feria_db:
@@ -131,7 +131,7 @@ def delete_feria(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina físicamente una feria de la base de datos.
+    Elimina "físicament"e una feria de la db
     """
     feria_db = session.get(Feria, feria_id)
     if not feria_db:

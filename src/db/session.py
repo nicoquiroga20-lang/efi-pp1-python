@@ -14,8 +14,8 @@ engine = create_engine(
 
 def get_session() -> Generator[Session, None, None]:
     """
-    Generador de sesión de base de datos para inyección de dependencias en FastAPI.
-    Asegura que cada solicitud HTTP maneje su propia sesión y se cierre al terminar.
+    Generador de sesión de base de datos para inyección de dependencias en FastAPI
+    Asegura que cada solicitud HTTP maneje su propia sesión y se cierre al terminar
     """
     with Session(engine) as session:
         yield session

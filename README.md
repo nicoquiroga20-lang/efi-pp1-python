@@ -1,6 +1,10 @@
-# EFI - API REST con FastAPI, SQLModel y CRUD
+# Feria Imperio - API Backend
 
-Este proyecto contiene la arquitectura base para una API REST construida con **FastAPI**, **SQLModel** (SQLAlchemy + Pydantic) y **Uvicorn**, diseñada para gestionar operaciones CRUD sobre una base de datos relacional y ser consumida por aplicaciones frontend o clientes externos.
+Portal de visibilización y catálogo para feriantes y emprendedores de Río Cuarto.  
+**Empresa:** Vertex Solutions S.A.S.  
+**Cátedra:** Programación II / Práctica Profesionalizante I - ITEC Río Cuarto.
+
+API REST modular construida con **FastAPI**, **SQLModel** (SQLAlchemy + Pydantic), **SQLite**, migraciones con **Alembic**, paginación estandarizada con **fastapi-pagination** y servidor **Uvicorn**.
 
 ---
 
@@ -11,36 +15,78 @@ efi-pp1-python/
 ├── .env                  # Variables de entorno activas (ignorado en git)
 ├── .env.example          # Plantilla de variables de entorno
 ├── .gitignore            # Reglas de exclusión para Git
+├── alembic.ini           # Configuración del motor de migraciones Alembic
+├── alembic/              # Control de versiones del esquema de base de datos
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/         # Scripts de migración generados
+├── database.db           # Base de datos relacional SQLite local
+├── docs/                 # Documentación técnica y de contexto del proyecto
+│   └── contexto/
+│       └── database_schema.md # Documento maestro del esquema de 8 tablas
 ├── requirements.txt      # Dependencias del proyecto
-├── README.md             # Documentación del proyecto
+├── README.md             # Documentación principal del backend
+├── tests/                # Suite de pruebas automatizadas
+│   ├── test_alembic.py
+│   ├── test_crud_and_nested.py
+│   ├── test_models_structure.py
+│   └── test_openapi_404_docs.py
 └── src/
     ├── __init__.py
-    ├── main.py           # Instancia principal de FastAPI, CORS y rutas
-    ├── core/
+    ├── main.py           # Instancia principal de FastAPI, CORS, paginación y rutas
+    ├── core/             # Configuración central del entorno y aplicación
     │   ├── __init__.py
     │   └── config.py     # Configuración con pydantic-settings
-    ├── db/
+    ├── db/               # Gestión de base de datos
     │   ├── __init__.py
-    │   ├── session.py    # Motor de base de datos y dependencia get_session
+    │   ├── session.py    # Engine de SQLModel y generador get_session
     │   └── init_db.py    # Inicialización de tablas (create_all)
-    ├── models/
+    ├── models/           # Modelos de tabla SQLModel (7 entidades de BD)
     │   ├── __init__.py
-    │   └── categoria.py  # Modelo de tabla SQLModel (Base de Datos)
-    ├── schemas/
+    │   ├── usuario.py
+    │   ├── emprendedor.py
+    │   ├── producto.py
+    │   ├── rubro.py
+    │   ├── categoria.py
+    │   ├── feria.py
+    │   └── contacto.py
+    ├── schemas/          # Esquemas Pydantic / SQLModel (Create, Read, Update, Nested)
     │   ├── __init__.py
-    │   └── categoria.py  # Esquemas Pydantic/SQLModel (Create, Read, Update)
-    └── routers/
+    │   ├── usuario.py
+    │   ├── emprendedor.py
+    │   ├── producto.py
+    │   ├── rubro.py
+    │   ├── categoria.py
+    │   ├── feria.py
+    │   └── contacto.py
+    └── routers/          # Path Operations y lógica CRUD pura por entidad
         ├── __init__.py
-        └── categorias.py # Path Operations y operaciones CRUD de categorías
+        ├── usuarios.py
+        ├── emprendedores.py
+        ├── productos.py
+        ├── rubros.py
+        ├── categorias.py
+        ├── ferias.py
+        └── contactos.py
 ```
+
+---
+
+## 📊 Entidades del Sistema (7 Tablas)
+
+1. **`usuarios`**: Gestión de usuarios (`admin`, `emprendedor`, `cliente`), credenciales y estado activo.
+2. **`emprendedores`**: Perfil público del feriante (nombre fantasía, bio, WhatsApp, número de puesto, logos, vinculación a rubro y feria).
+3. **`productos`**: Catálogo de productos por emprendedor y categoría (precio, stock, imagen, destacado en Home; límite uniforme de 50 productos).
+4. **`rubros`**: Clasificación comercial del puesto (artesanías, gastronomía, indumentaria, etc.).
+5. **`categorias`**: Clasificación de artículos individuales para filtrado en el catálogo.
+6. **`ferias`**: Cronograma y ubicaciones de ferias presenciales de Río Cuarto.
+7. **`contactos`**: Mensajes de contacto y postulaciones de nuevos feriantes.
 
 ---
 
 ## 🚀 Puesta en Marcha
 
 ### 1. Activar el entorno virtual
-
-Si ya tienes un entorno virtual en la carpeta `venv`:
 
 En Linux / macOS:
 ```bash
@@ -60,46 +106,62 @@ pip install -r requirements.txt
 
 ### 3. Configurar variables de entorno
 
-Copia el archivo de ejemplo si no existe `.env`:
+Copia el archivo `.env.example` en caso de requerir un nuevo entorno:
 ```bash
 cp .env.example .env
 ```
 
-Por defecto, la base de datos está configurada con SQLite:
+Por defecto, la base de datos se aloja en SQLite local:
 ```env
 DATABASE_URL="sqlite:///./database.db"
 ```
 
-> Si deseas usar PostgreSQL o MySQL, simplemente modifica la URL en `.env` (por ejemplo: `postgresql://user:password@localhost:5432/dbname`).
+### 4. Migraciones de Base de Datos (Alembic)
 
-### 4. Ejecutar el servidor
+Para aplicar las migraciones a la última versión disponible:
+```bash
+alembic upgrade head
+```
 
-Inicia el servidor en modo desarrollo con recarga automática:
+### 5. Ejecutar el servidor de desarrollo
 
 ```bash
 uvicorn src.main:app --reload
 ```
 
-El servidor estará disponible en: [http://localhost:8000](http://localhost:8000)
+El servidor quedará activo en [http://localhost:8000](http://localhost:8000).
 
 ---
 
 ## 📖 Documentación Interactiva de la API
 
-Una vez iniciado el servidor, puedes probar y consultar los endpoints directamente en el navegador:
+La API cuenta con documentación autogenerada y esquema OpenAPI:
 
-- **Swagger UI**: [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs)
-- **ReDoc**: [http://localhost:8000/api/v1/redoc](http://localhost:8000/api/v1/redoc)
+- **Swagger UI**: [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs) (o simplemente `/docs`)
+- **ReDoc**: [http://localhost:8000/api/v1/redoc](http://localhost:8000/api/v1/redoc) (o `/redoc`)
 
 ---
 
-## 🔌 Endpoints CRUD Disponibles (Categorías)
+## 🔌 Resumen de Endpoints CRUD (`/api/v1`)
 
-| Método | Endpoint | Descripción |
+Todos los recursos cuentan con operaciones CRUD completas, paginación estandarizada (`page` y `size`) y respuestas 404 documentadas:
+
+| Recurso | Endpoints Principales | Descripción |
 | :--- | :--- | :--- |
-| `POST` | `/api/v1/categorias/` | Crear una nueva categoría |
-| `GET` | `/api/v1/categorias/` | Listar categorías (con paginación y filtros) |
-| `GET` | `/api/v1/categorias/{id}` | Obtener el detalle de una categoría por ID |
-| `PUT` | `/api/v1/categorias/{id}` | Actualizar los datos de una categoría |
-| `DELETE` | `/api/v1/categorias/{id}` | Eliminar una categoría por ID |
-| `GET` | `/` | Health check del servidor |
+| **Usuarios** | `GET/POST /api/v1/usuarios/`, `GET/PUT/DELETE /api/v1/usuarios/{id}` | CRUD de usuarios y credenciales |
+| **Emprendedores** | `GET/POST /api/v1/emprendedores/`, `GET/PUT/DELETE /api/v1/emprendedores/{id}` | Gestión de perfiles de feriantes |
+| **Productos** | `GET/POST /api/v1/productos/`, `GET/PUT/DELETE /api/v1/productos/{id}` | Catálogo de productos (límite uniforme de 50 artículos) |
+| **Rubros** | `GET/POST /api/v1/rubros/`, `GET/PUT/DELETE /api/v1/rubros/{id}` | Rubros comerciales de feriantes |
+| **Categorías** | `GET/POST /api/v1/categorias/`, `GET/PUT/DELETE /api/v1/categorias/{id}` | Categorización de productos |
+| **Ferias** | `GET/POST /api/v1/ferias/`, `GET/PUT/DELETE /api/v1/ferias/{id}` | Ubicaciones y fechas de ferias |
+| **Contactos** | `GET/POST /api/v1/contactos/`, `GET/PUT/DELETE /api/v1/contactos/{id}` | Bandeja de mensajes y postulaciones |
+
+---
+
+## 🧪 Pruebas Automatizadas
+
+El proyecto incluye 22 pruebas unitarias e integrales que validan la estructura de modelos, migraciones Alembic, contratos OpenAPI (404) y operaciones CRUD:
+
+```bash
+python -m unittest discover tests
+```

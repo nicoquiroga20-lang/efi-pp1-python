@@ -5,13 +5,6 @@ from src.models.usuario import (
     UsuarioCreate,
     UsuarioUpdate,
 )
-from src.models.plan import (
-    Plan,
-    PlanBase,
-    PlanPublic,
-    PlanCreate,
-    PlanUpdate,
-)
 from src.models.rubro import (
     Rubro,
     RubroBase,
@@ -63,11 +56,6 @@ __all__ = [
     "UsuarioPublic",
     "UsuarioCreate",
     "UsuarioUpdate",
-    "Plan",
-    "PlanBase",
-    "PlanPublic",
-    "PlanCreate",
-    "PlanUpdate",
     "Rubro",
     "RubroBase",
     "RubroPublic",

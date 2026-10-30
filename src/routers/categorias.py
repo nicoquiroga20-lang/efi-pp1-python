@@ -29,7 +29,7 @@ def create_categoria(
     session: Session = Depends(get_session),
 ) -> Categoria:
     """
-    Crea una nueva categoría en la base de datos.
+    Crea una nueva categoría en la db
     """
     existing = session.exec(select(Categoria).where(Categoria.nombre == categoria_in.nombre)).first()
     if existing:
@@ -55,7 +55,7 @@ def read_categorias(
     session: Session = Depends(get_session),
 ):
     """
-    Retorna la lista de categorías con soporte para paginación estandarizada y filtrado.
+    devuelve la lista de categorías con soporte para paginacióny filtrado.
     """
     statement = select(Categoria)
     if activo is not None:
@@ -79,7 +79,7 @@ def read_categoria(
     session: Session = Depends(get_session),
 ) -> Categoria:
     """
-    Busca y retorna una categoría específica por su ID.
+    Busca y retorna una categoría por su id
     """
     categoria = session.get(Categoria, categoria_id)
     if not categoria:
@@ -107,7 +107,7 @@ def update_categoria(
     session: Session = Depends(get_session),
 ) -> Categoria:
     """
-    Actualiza los campos enviados de una categoría existente.
+    Actualiza los campos enviados de una categoría que ya existe en la db
     """
     categoria_db = session.get(Categoria, categoria_id)
     if not categoria_db:
@@ -142,7 +142,7 @@ def delete_categoria(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina físicamente una categoría de la base de datos por su ID.
+    Elimina "físicamente" una categoría de la base de datos por su id
     """
     categoria_db = session.get(Categoria, categoria_id)
     if not categoria_db:

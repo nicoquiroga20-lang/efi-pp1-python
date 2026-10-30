@@ -10,7 +10,6 @@ from src.routers import (
     usuarios_router,
     emprendedores_router,
     productos_router,
-    planes_router,
     rubros_router,
     categorias_router,
     ferias_router,
@@ -22,7 +21,7 @@ from src.routers import (
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     Gestión del ciclo de vida de la aplicación.
-    Inicializa las 8 tablas en la base de datos relacional al arrancar.
+    Inicializa las 7 tablas en la base de datos relacional al arrancar.
     """
     init_db()
     yield
@@ -52,7 +51,6 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(usuarios_router, prefix=settings.API_V1_STR)
 app.include_router(emprendedores_router, prefix=settings.API_V1_STR)
 app.include_router(productos_router, prefix=settings.API_V1_STR)
-app.include_router(planes_router, prefix=settings.API_V1_STR)
 app.include_router(rubros_router, prefix=settings.API_V1_STR)
 app.include_router(categorias_router, prefix=settings.API_V1_STR)
 app.include_router(ferias_router, prefix=settings.API_V1_STR)

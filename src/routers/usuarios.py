@@ -4,9 +4,16 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import Session, select
 
-from src.core.security import get_password_hash
+import bcrypt
 from src.db.session import get_session
 from src.models.usuario import Usuario, UsuarioCreate, UsuarioPublic, UsuarioUpdate
+
+
+def hash_password(password: str) -> str:
+    """Genera hash seguro para persistir en la columna password_hash."""
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
 
 router = APIRouter(
     prefix="/usuarios",
@@ -25,7 +32,7 @@ def create_usuario(
     session: Session = Depends(get_session),
 ) -> Usuario:
     """
-    Crea un nuevo usuario en el sistema.
+    Crea un nuevo usuario en el sistema
     """
     existing_user = session.exec(select(Usuario).where(Usuario.email == usuario_in.email)).first()
     if existing_user:
@@ -36,7 +43,7 @@ def create_usuario(
 
     usuario_db = Usuario(
         email=usuario_in.email,
-        password_hash=get_password_hash(usuario_in.password),
+        password_hash=hash_password(usuario_in.password),
         nombre_completo=usuario_in.nombre_completo,
         rol=usuario_in.rol,
         activo=usuario_in.activo,
@@ -58,7 +65,7 @@ def read_usuarios(
     session: Session = Depends(get_session),
 ):
     """
-    Retorna la lista de usuarios registrados con soporte de paginación.
+    Devuelve la lista de usuarios registrados con soportee de paginación.
     """
     statement = select(Usuario)
     if rol is not None:
@@ -84,7 +91,7 @@ def read_usuario(
     session: Session = Depends(get_session),
 ) -> Usuario:
     """
-    Consulta los datos de un usuario por su ID.
+    Consulta los datos de un usuario por su id
     """
     usuario = session.get(Usuario, usuario_id)
     if not usuario:
@@ -112,7 +119,7 @@ def update_usuario(
     session: Session = Depends(get_session),
 ) -> Usuario:
     """
-    Actualiza el perfil de un usuario existente.
+    Actualiza el perfil de un usuario que ya existe
     """
     usuario_db = session.get(Usuario, usuario_id)
     if not usuario_db:
@@ -125,7 +132,7 @@ def update_usuario(
 
     # Si se actualiza la contraseña, aplicar hash
     if "password" in data and data["password"]:
-        usuario_db.password_hash = get_password_hash(data.pop("password"))
+        usuario_db.password_hash = hash_password(data.pop("password"))
 
     for key, value in data.items():
         setattr(usuario_db, key, value)
@@ -152,7 +159,7 @@ def delete_usuario(
     session: Session = Depends(get_session),
 ) -> None:
     """
-    Elimina un usuario del sistema por su ID.
+    Elimina un usuario del sistema por su id
     """
     usuario_db = session.get(Usuario, usuario_id)
     if not usuario_db:
