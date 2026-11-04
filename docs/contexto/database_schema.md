@@ -88,6 +88,7 @@ class Rubro(SQLModel, table=True):
     nombre: str = Field(unique=True, index=True, max_length=100, nullable=False)
     descripcion: Optional[str] = Field(default=None, max_length=255)
     activo: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 ```
 
 ### 5. `categorias` (`Categoria`)
@@ -97,7 +98,7 @@ class Categoria(SQLModel, table=True):
     __tablename__ = "categorias"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    nombre: str = Field(unique=True, index=True, max_length=100, nullable=False)
+    nombre: str = Field(index=True, max_length=100, nullable=False)
     descripcion: Optional[str] = Field(default=None, max_length=255)
     activo: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -110,12 +111,13 @@ class Feria(SQLModel, table=True):
     __tablename__ = "ferias"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    nombre: str = Field(max_length=150, nullable=False)  # Ej: 'Paseo del Andino', 'Parque Sarmiento'
+    nombre: str = Field(index=True, max_length=150, nullable=False)  # Ej: 'Paseo del Andino', 'Parque Sarmiento'
     ubicacion: str = Field(max_length=255, nullable=False)
     proxima_fecha: Optional[datetime] = Field(default=None)
     horario: Optional[str] = Field(default=None, max_length=100)  # Ej: '15:00 a 20:00 hs'
     descripcion: Optional[str] = Field(default=None, max_length=500)
     activa: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 ```
 
 ### 7. `contactos` (`Contacto`)
@@ -126,7 +128,7 @@ class Contacto(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     nombre_completo: str = Field(max_length=150, nullable=False)
-    email: str = Field(max_length=150, nullable=False)
+    email: str = Field(index=True, max_length=150, nullable=False)
     telefono: Optional[str] = Field(default=None, max_length=50)
     tipo_mensaje: str = Field(default="consulta_general", max_length=50)  # 'consulta_general', 'postulacion_puesto', 'feedback'
     mensaje: str = Field(nullable=False)
