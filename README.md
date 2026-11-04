@@ -92,65 +92,7 @@ efi-pp1-python/
 6. **`ferias`**: Cronograma y ubicaciones de ferias presenciales de Río Cuarto.
 7. **`contactos`**: Mensajes de contacto y postulaciones de nuevos feriantes.
 
----
-
-## 🚀 Puesta en Marcha
-
-### 1. Activar el entorno virtual
-
-En Linux / macOS:
-```bash
-source venv/bin/activate
-```
-
-En Windows (PowerShell):
-```powershell
-venv\Scripts\Activate.ps1
-```
-
-### 2. Instalar dependencias
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Configurar variables de entorno
-
-Copia el archivo `.env.example` en caso de requerir un nuevo entorno:
-```bash
-cp .env.example .env
-```
-
-Por defecto, la base de datos se aloja en SQLite local:
-```env
-DATABASE_URL="sqlite:///./database.db"
-```
-
-### 4. Migraciones de Base de Datos (Alembic)
-
-La API aplica las migraciones pendientes al arrancar. Para aplicarlas manualmente:
-```bash
-alembic upgrade head
-```
-
-### 5. Ejecutar el servidor de desarrollo
-
-```bash
-uvicorn src.main:app --reload
-```
-
-El servidor quedará activo en [http://localhost:8000](http://localhost:8000).
-
----
-
-## 📖 Documentación Interactiva de la API
-
-La API cuenta con documentación autogenerada y esquema OpenAPI:
-
-- **Swagger UI**: [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs) (o simplemente `/docs`)
-- **ReDoc**: [http://localhost:8000/api/v1/redoc](http://localhost:8000/api/v1/redoc) (o `/redoc`)
-
----
+----
 
 ## 🔌 Resumen de Endpoints CRUD (`/api/v1`)
 
@@ -167,12 +109,4 @@ Todos los recursos cuentan con operaciones CRUD completas, paginación estandari
 | **Contactos** | `GET/POST /api/v1/contactos/`, `GET/PUT/DELETE /api/v1/contactos/{id}` | `ContactoPublic` | Bandeja de mensajes y postulaciones con filtrado |
 
 ---
-
-## 🧪 Pruebas Automatizadas
-
-El proyecto incluye una suite de pruebas automatizadas que validan la estructura de modelos, migraciones Alembic, contratos OpenAPI (404/409/400), anidamientos y operaciones CRUD con integridad referencial:
-
-```bash
-venv/bin/python -m unittest discover tests
-```
 
