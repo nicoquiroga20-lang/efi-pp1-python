@@ -11,7 +11,7 @@ import src.models  # Asegura el registro de todos los modelos en SQLModel.metada
 config = context.config
 
 # Interpret the config file for Python logging.
-if config.config_file_name is not None:
+if config.config_file_name is not None and config.attributes.get("configure_logger", True):
     fileConfig(config.config_file_name)
 
 # Configurar la URL de SQLAlchemy dinámicamente desde settings del proyecto

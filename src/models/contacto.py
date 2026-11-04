@@ -34,10 +34,10 @@ class ContactoCreate(ContactoBase):
 
 class ContactoUpdate(SQLModel):
     """Esquema para actualizar Contacto."""
-    nombre_completo: Optional[str] = Field(default=None, min_length=1, max_length=150)
-    email: Optional[str] = Field(default=None, min_length=3, max_length=150)
+    nombre_completo: str = Field(default=None, min_length=1, max_length=150)
+    email: str = Field(default=None, min_length=3, max_length=150)
     telefono: Optional[str] = Field(default=None, max_length=50)
-    tipo_mensaje: Optional[str] = Field(default=None, max_length=50)
-    mensaje: Optional[str] = Field(default=None, min_length=1)
-    leido: Optional[bool] = None
+    tipo_mensaje: str = Field(default=None, max_length=50)
+    mensaje: str = Field(default=None, min_length=1)
+    leido: bool = None
 

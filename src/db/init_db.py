@@ -1,11 +1,11 @@
-from sqlmodel import SQLModel
-from src.db.session import engine
-# Se importan los modelos para que queden registrados en SQLModel.metadata
-import src.models  # noqa: F401
+from pathlib import Path
+
+from alembic import command
+from alembic.config import Config
 
 
 def init_db() -> None:
-    """
-    Inicializa la base de datos creando las tablas que aún no existan
-    """
-    SQLModel.metadata.create_all(engine)
+    """Aplica las migraciones pendientes antes de aceptar solicitudes."""
+    config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+    config.attributes["configure_logger"] = False
+    command.upgrade(config, "head")

@@ -52,13 +52,13 @@ class ProductoCreate(ProductoBase):
 
 class ProductoUpdate(SQLModel):
     """Esquema para actualizar Producto."""
-    emprendedor_id: Optional[int] = Field(default=None, gt=0)
-    categoria_id: Optional[int] = Field(default=None, gt=0)
-    nombre: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    emprendedor_id: int = Field(default=None, gt=0)
+    categoria_id: int = Field(default=None, gt=0)
+    nombre: str = Field(default=None, min_length=1, max_length=150)
     descripcion: Optional[str] = Field(default=None, max_length=500)
-    precio: Optional[float] = Field(default=None, ge=0.0)
+    precio: float = Field(default=None, ge=0.0)
     imagen_url: Optional[str] = Field(default=None, max_length=255)
-    en_stock: Optional[bool] = None
-    destacado: Optional[bool] = None
-    activo: Optional[bool] = None
+    en_stock: bool = None
+    destacado: bool = None
+    activo: bool = None
 

@@ -45,11 +45,11 @@ class FeriaCreate(FeriaBase):
 
 class FeriaUpdate(SQLModel):
     """Esquema para actualizar Feria."""
-    nombre: Optional[str] = Field(default=None, min_length=1, max_length=150)
-    ubicacion: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    nombre: str = Field(default=None, min_length=1, max_length=150)
+    ubicacion: str = Field(default=None, min_length=1, max_length=255)
     proxima_fecha: Optional[datetime] = None
     horario: Optional[str] = Field(default=None, max_length=100)
     descripcion: Optional[str] = Field(default=None, max_length=500)
-    activa: Optional[bool] = None
+    activa: bool = None
 
 

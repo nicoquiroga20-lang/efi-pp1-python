@@ -47,7 +47,7 @@ efi-pp1-python/
     ├── db/               # Gestión de base de datos
     │   ├── __init__.py
     │   ├── session.py    # Engine de SQLModel y generador get_session
-    │   └── init_db.py    # Inicialización de tablas (create_all)
+    │   └── init_db.py    # Aplicación de migraciones al arrancar
     ├── models/           # Modelos de tabla SQLModel (7 entidades de BD)
     │   ├── __init__.py
     │   ├── usuario.py
@@ -125,7 +125,7 @@ DATABASE_URL="sqlite:///./database.db"
 
 ### 4. Migraciones de Base de Datos (Alembic)
 
-Para aplicar las migraciones a la última versión disponible:
+La API aplica las migraciones pendientes al arrancar. Para aplicarlas manualmente:
 ```bash
 alembic upgrade head
 ```
