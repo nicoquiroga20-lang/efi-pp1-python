@@ -44,9 +44,9 @@ class UsuarioCreate(UsuarioBase):
 
 class UsuarioUpdate(SQLModel):
     """Esquema para actualizar Usuario."""
-    nombre_completo: Optional[str] = Field(default=None, min_length=1, max_length=150)
-    password: Optional[str] = Field(default=None, min_length=4)
-    rol: Optional[str] = Field(default=None, regex=r"^(cliente|emprendedor|admin)$")
-    activo: Optional[bool] = None
+    nombre_completo: str = Field(default=None, min_length=1, max_length=150)
+    password: str = Field(default=None, min_length=4)
+    rol: str = Field(default=None, regex=r"^(cliente|emprendedor|admin)$")
+    activo: bool = None
 
 

@@ -42,8 +42,8 @@ class RubroCreate(RubroBase):
 
 class RubroUpdate(SQLModel):
     """Esquema para actualizar Rubro."""
-    nombre: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    nombre: str = Field(default=None, min_length=1, max_length=100)
     descripcion: Optional[str] = Field(default=None, max_length=255)
-    activo: Optional[bool] = None
+    activo: bool = None
 
 

@@ -21,7 +21,7 @@ from src.routers import (
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     Gestión del ciclo de vida de la aplicación.
-    Inicializa las 7 tablas en la base de datos relacional al arrancar.
+    Aplica las migraciones pendientes al arrancar.
     """
     init_db()
     yield
