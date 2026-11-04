@@ -25,15 +25,18 @@ efi-pp1-python/
 ├── alembic.ini           # Configuración del motor de migraciones Alembic
 ├── alembic/              # Control de versiones del esquema de base de datos
 │   ├── env.py
+│   ├── README            # Documentación del entorno de migraciones
 │   ├── script.py.mako
 │   └── versions/         # Scripts de migración generados
 ├── database.db           # Base de datos relacional SQLite local
 ├── docs/                 # Documentación técnica y de contexto del proyecto
 │   └── contexto/
-│       └── database_schema.md # Documento maestro del esquema de 8 tablas
+│       └── database_schema.md # Documento maestro del esquema de tablas
+├── pyproject.toml        # Configuración de empaquetado y despliegue (FastAPI Cloud)
 ├── requirements.txt      # Dependencias del proyecto
 ├── README.md             # Documentación principal del backend
 ├── tests/                # Suite de pruebas automatizadas
+│   ├── __init__.py
 │   ├── test_alembic.py
 │   ├── test_crud_and_nested.py
 │   ├── test_models_structure.py
