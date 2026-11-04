@@ -6,46 +6,6 @@ Portal de visibilización y catálogo para feriantes y emprendedores de Río Cua
 
 API REST modular construida con **FastAPI**, **SQLModel** (SQLAlchemy + Pydantic), **SQLite**, migraciones con **Alembic**, paginación estandarizada con **fastapi-pagination** y servidor **Uvicorn**.
 
-## 🤝 Colaboradores
-
-Participantes del Trabajo
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/FornaJoa" title="Perfil de Joaquin Fornasari en GitHub">
-        <img src="https://avatars.githubusercontent.com/u/163206353?v=4" width="100" alt="Foto de Joaquin Fornasari en GitHub"/><br>
-        <sub>
-          <b>Joaquin Fornasari</b>
-        </sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/FrancoLeoneok" title="Perfil de Franco Leone en GitHub">
-        <img src="https://avatars.githubusercontent.com/u/178578464?v=4" width="100" alt="Foto de Franco Leone en GitHub"/><br>
-        <sub>
-          <b>Franco Leone</b>
-        </sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/AlejoAlaminos" title="Perfil de Alejo Alaminos en GitHub">
-        <img src="https://avatars.githubusercontent.com/u/164796037?v=4" width="100" alt="Foto de Alejo Alaminos en GitHub"/><br>
-        <sub>
-          <b>Alejo Alaminos</b>
-        </sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/nicoquiroga20-lang" title="Perfil de Nicolas Quiroga en GitHub">
-        <img src="https://avatars.githubusercontent.com/u/232619836?v=4" width="100" alt="Foto de Nicolas Quiroga en GitHub"/><br>
-        <sub>
-          <b>Nicolas Quiroga</b>
-        </sub>
-      </a>
-    </td>
-  </tr>
-</table>
 
 
 ---
@@ -145,4 +105,44 @@ Todos los recursos cuentan con operaciones CRUD completas, paginación estandari
 | **Contactos** | `GET/POST /api/v1/contactos/`, `GET/PUT/DELETE /api/v1/contactos/{id}` | `ContactoPublic` | Bandeja de mensajes y postulaciones con filtrado |
 
 ---
+## 🤝 Colaboradores
+
+Participantes del Trabajo
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/FornaJoa" title="Perfil de Joaquin Fornasari en GitHub">
+        <img src="https://avatars.githubusercontent.com/u/163206353?v=4" width="100" alt="Foto de Joaquin Fornasari en GitHub"/><br>
+        <sub>
+          <b>Joaquin Fornasari</b>
+        </sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/FrancoLeoneok" title="Perfil de Franco Leone en GitHub">
+        <img src="https://avatars.githubusercontent.com/u/178578464?v=4" width="100" alt="Foto de Franco Leone en GitHub"/><br>
+        <sub>
+          <b>Franco Leone</b>
+        </sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/AlejoAlaminos" title="Perfil de Alejo Alaminos en GitHub">
+        <img src="https://avatars.githubusercontent.com/u/164796037?v=4" width="100" alt="Foto de Alejo Alaminos en GitHub"/><br>
+        <sub>
+          <b>Alejo Alaminos</b>
+        </sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/nicoquiroga20-lang" title="Perfil de Nicolas Quiroga en GitHub">
+        <img src="https://avatars.githubusercontent.com/u/232619836?v=4" width="100" alt="Foto de Nicolas Quiroga en GitHub"/><br>
+        <sub>
+          <b>Nicolas Quiroga</b>
+        </sub>
+      </a>
+    </td>
+  </tr>
+</table>
 
